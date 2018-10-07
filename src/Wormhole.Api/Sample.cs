@@ -2,7 +2,8 @@
 
 namespace Wormhole.Api
 {
-    public class Class1
+    public class Sample
     {
     }
 }
+
