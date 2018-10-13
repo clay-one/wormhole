@@ -1,25 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using hydrogen.General.Validation;
+using Microsoft.AspNetCore.Mvc;
 using Wormhole.Api.Model;
+using Wormhole.Logic;
 
 namespace Wormhole.Api.Controllers
 {
     [Route("api/message")]
     [ApiController]
-    public class PublishMessageController : ControllerBase
+    public class PublishMessageController : ApiControllerBase
     {
-        [HttpPost("publish")]
-        public IActionResult Publish([FromBody] PublishInput input)
+        private IPublishMessage PublishMessageLogic;
+
+        public PublishMessageController(IPublishMessage publishMessageLogic)
         {
-            if (input == null || string.IsNullOrWhiteSpace(input.Message))
+            PublishMessageLogic = publishMessageLogic;
+        }
+
+        [HttpPost("publish")]
+        public ApiValidationResult Publish([FromBody] PublishInput input)
+        {
+            if (input?.Message == null)
             {
-                return BadRequest(new { message = "parameter is null"});
+                return ApiValidationResult.Failure(ErrorKeys.ParameterNull);
             }
 
-            var message = input.Message;
-            var tenant = input.Tenant;
-            var category = input.Category;
+            PublishMessageLogic.ProduceMessage(input);
 
-            return Ok();
+            return ApiValidationResult.Ok();
         }
     }
 }
