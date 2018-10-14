@@ -7,26 +7,29 @@ namespace Wormhole.Api.Controllers
 {
     [Route("api/message")]
     [ApiController]
-    public class PublishMessageController : ApiControllerBase
+    public class PublishMessageController : ControllerBase
     {
-        private IPublishMessage PublishMessageLogic;
+        private IPublishMessageLogic PublishMessageLogic;
 
-        public PublishMessageController(IPublishMessage publishMessageLogic)
+        public PublishMessageController(IPublishMessageLogic publishMessageLogic)
         {
             PublishMessageLogic = publishMessageLogic;
         }
 
         [HttpPost("publish")]
-        public ApiValidationResult Publish([FromBody] PublishInput input)
+        public IActionResult Publish([FromBody] PublishInput input)
         {
-            if (input?.Message == null)
+            if (input?.Message == null || string.IsNullOrWhiteSpace(input.Tenant) || string.IsNullOrWhiteSpace(input.Tenant))
             {
-                return ApiValidationResult.Failure(ErrorKeys.ParameterNull);
+                return BadRequest(new { Message = ErrorKeys.ParameterNull});
             }
 
-            PublishMessageLogic.ProduceMessage(input);
+            var result = PublishMessageLogic.ProduceMessage(input);
 
-            return ApiValidationResult.Ok();
+            if (result.Error != null)
+                return BadRequest(new { Message = result.Error });
+
+            return Ok(ApiValidationResult.Ok());
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿namespace Wormhole.Kafka
+﻿using Wormhole.Api.Model;
+
+namespace Wormhole.Kafka
 {
-    public interface IKafkaProducer<in T> where T : class
+    public interface IKafkaProducer
     {
-        void Produce(T message);
+        void Produce(PublishInput message);
 
         int Flush();
     }
