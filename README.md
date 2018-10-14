@@ -1,6 +1,5 @@
 
-[![Build status](https://ci.appveyor.com/api/projects/status/hlqn8xh3wu9xd3e7?svg=true)](https://ci.appveyor.com/project/shadi-mahm/wormhole-ml1ad/branch/develop)
-
+[![Build status](https://ci.appveyor.com/api/projects/status/d27jo2md4km2jy7v/branch/master?svg=true)](https://ci.appveyor.com/project/shadi-mahm/wormhole-u70hp/branch/master)
 
 
 # Wormhole
