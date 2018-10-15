@@ -2,8 +2,8 @@
 {
     public class PublishInput
     {
-        public string Message { get; set; }
-        public Tenants Tenant { get; set; }
-        public Categories Category { get; set; }
+        public object Message { get; set; }
+        public string Tenant { get; set; }
+        public string Category { get; set; }
     }
 }
