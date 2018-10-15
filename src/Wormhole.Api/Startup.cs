@@ -41,11 +41,7 @@ namespace Wormhole.Api
             MapWebApi(app);
             app.UseHttpsRedirection();
         }
-
-        private void AddConfigurationObjects(IServiceCollection services)
-        {
-            services.Configure<KafkaConfiguration>(Configuration.GetSection(KafkaConfiguration.SectionName));
-        }
+        
 
         private static void MapWebApi(IApplicationBuilder app)
         {

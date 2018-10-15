@@ -6,21 +6,32 @@ using CommonLogic.Kafka;
 using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
 using log4net;
+using Microsoft.Extensions.Options;
 
 namespace Wormhole.Kafka
 {
     public class KafkaConsumer: IKafkaConsumer<Null, string>
     {
-        private readonly KafkaConfiguration _configuration;
         private readonly ILog _logger;
         private Consumer<Null, string> _consumer;
+        private readonly KafkaConfig _configuration;
         private ConsumerDiagnostic _consumerDiagnostic;
 
-        public KafkaConsumer(KafkaConfiguration configuration)
+        public KafkaConsumer(IOptions<KafkaConfig> options)
         {
-            _configuration = configuration;
+            _configuration = options.Value;
+			OnError += Error;
+			OnPartitionsAssigned += PartitionsAssigned;
+			OnPartitionEOF += PartitionEof;
+			OnStatistics += Statistics;
+			OnPartitionsRevoked += PartitionsRevoked;
+			OnConsumeError += ConsumeError;
+			OnOffsetsCommitted += OffsetsCommitted;
+			OnLog += Log;
         }
-
+        private void Log(object sender, LogMessage e)
+        {
+        }
         public void Dispose()
         {
             _consumer.Dispose();
@@ -66,13 +77,13 @@ namespace Wormhole.Kafka
         public void Initialize(ICollection<KeyValuePair<string, object>> config, EventHandler<Message<Null, string>> onMessageEventHandler)
         {
             OnMessage = onMessageEventHandler;
-            config.Add(new KeyValuePair<string, object>(KafkaConfiguration.BootstrapServersKey,
+            config.Add(new KeyValuePair<string, object>(KafkaConfig.BootstrapServersKey,
                 _configuration.BootstrapServers));
-            config.Add(new KeyValuePair<string, object>(KafkaConfiguration.ConsumerAutoCommitIntervalMsKey, 
+            config.Add(new KeyValuePair<string, object>(KafkaConfig.ConsumerAutoCommitIntervalMsKey, 
                 _configuration.ConsumerAutoCommitIntervalMs));
-            config.Add(new KeyValuePair<string, object>(KafkaConfiguration.EnableAutoCommitKey, _configuration.EnableAutoCommit));
-            config.Add(new KeyValuePair<string, object>(KafkaConfiguration.StatisticsIntervalMsKey, _configuration.StatisticsIntervalMs));
-            config.Add(new KeyValuePair<string, object>(KafkaConfiguration.DefaultTopicConfigKey, _configuration.DefaultTopicConfig));
+            config.Add(new KeyValuePair<string, object>(KafkaConfig.EnableAutoCommitKey, _configuration.EnableAutoCommit));
+            config.Add(new KeyValuePair<string, object>(KafkaConfig.StatisticsIntervalMsKey, _configuration.StatisticsIntervalMs));
+            config.Add(new KeyValuePair<string, object>(KafkaConfig.DefaultTopicConfigKey, _configuration.DefaultTopicConfig));
 
             _consumer = new Consumer<Null, string>(config,null, new StringDeserializer(Encoding.UTF8));
 
