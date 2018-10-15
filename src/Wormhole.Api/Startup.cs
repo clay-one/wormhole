@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Wormhole.Kafka;
 
 namespace Wormhole.Api
 {
@@ -19,6 +20,8 @@ namespace Wormhole.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            AddConfigurationObjects(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,9 +35,19 @@ namespace Wormhole.Api
             {
                 app.UseHsts();
             }
-
+            
+            MapWebApi(app);
             app.UseHttpsRedirection();
-            app.UseMvc();
+        }
+
+        private void AddConfigurationObjects(IServiceCollection services)
+        {
+            services.Configure<KafkaConfiguration>(Configuration.GetSection(KafkaConfiguration.SectionName));
+        }
+
+        private static void MapWebApi(IApplicationBuilder app)
+        {
+            app.Map("/api", apiApp => { apiApp.UseMvc(); });
         }
     }
 }

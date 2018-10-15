@@ -9,11 +9,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Wormhole.Api.Model\Wormhole.Api.Model.csproj" />
+    <ProjectReference Include="..\Wormhole\Wormhole.csproj" />
   </ItemGroup>
 
 
