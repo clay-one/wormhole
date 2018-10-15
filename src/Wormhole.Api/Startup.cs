@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Wormhole.Kafka;
+using Wormhole.Logic;
 
 namespace Wormhole.Api
 {
@@ -20,8 +21,9 @@ namespace Wormhole.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
-            AddConfigurationObjects(services);
+            services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
+            services.AddSingleton<IKafkaProducer, KafkaProducer>();
+            services.Configure<KafkaConfig>(Configuration.GetSection("KafkaConfig"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
