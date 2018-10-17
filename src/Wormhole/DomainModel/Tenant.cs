@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -13,9 +14,9 @@ namespace Wormhole.DomainModel
         public DateTime CreationTime { get; set; }
 
         [BsonRepresentation(BsonType.String)]
-        public ChannelType InputChannel { get; set; }
+        public List<ChannelType> InputChannels { get; set; }
 
         [BsonRepresentation(BsonType.String)]
-        public ChannelType OutputChannel { get; set; }
+        public List<ChannelType> OutputChannels { get; set; }
     }
 }

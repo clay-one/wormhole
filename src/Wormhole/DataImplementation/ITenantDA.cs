@@ -6,7 +6,8 @@ namespace Wormhole
 {
     public interface ITenantDA
     {
-        Task<IList<Tenant>> FindTenants();
+        Task<List<Tenant>> FindTenants();
+        Task AddTenant(Tenant tenant);
 
     }
 }
