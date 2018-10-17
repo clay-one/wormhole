@@ -1,45 +1,40 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.ServiceProcess;
-using ComposerCore;
-using ComposerCore.Implementation;
-using ComposerCore.Utility;
-using log4net;
-using log4net.Config;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Nebula;
 using Nebula.Queue;
 using Nebula.Queue.Implementation;
+using Wormhole.DataImplementation;
 using Wormhole.Job;
 
 namespace Wormhole.Worker
 {
     internal class Program
     {
-        public static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly NebulaContext NebulaContext = new NebulaContext();
         private static readonly IConfigurationRoot AppConfiguration = BuildConfiguration(Directory.GetCurrentDirectory());
-
-        private static IComponentContext Composer { get; set; }
-
+        private static readonly ServiceProvider ServiceProvider = ConfigureServices();
+        private static ILogger<Program> Logger { get; set; }
 
         private static void Main(string[] args)
         {
-            XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetCallingAssembly()));
-            ConfigureComposer();
+            ConfigureLogging();
+
             ConfigureNebula();
 
             if (!Environment.UserInteractive)
             {
                 // running as service
-                Log.Info("Windows service starting");
+                Logger.LogInformation("Windows service starting");
                 using (var windowsService = new JobQueueWindowsService(NebulaContext))
                 {
                     ServiceBase.Run(windowsService);
                 }
 
-                Log.Info("Windows service started");
+                Logger.LogInformation("Windows service started");
             }
             else
             {
@@ -54,13 +49,28 @@ namespace Wormhole.Worker
                 NebulaContext.StopWorkerService();
                 Console.WriteLine("Service stopped, everything looks clean.");
             }
+            
         }
 
-        private static void ConfigureComposer()
+        private static void ConfigureLogging()
         {
-            Composer = new ComponentContext();
-            Composer.RegisterAssembly("Nebula");
-            Composer.RegisterAssembly("Wormhole");
+            ServiceProvider
+                .GetService<ILoggerFactory>()
+                .AddConsole(LogLevel.Debug);
+
+            Logger = ServiceProvider.GetService<ILoggerFactory>()
+                .CreateLogger<Program>();
+            Logger.LogDebug("Starting application");
+        }
+
+
+        private static ServiceProvider ConfigureServices()
+        {
+            return new ServiceCollection()
+                .AddLogging()
+                .AddSingleton<ITenantDA, TenantDA>()
+                .AddSingleton<IFinalizableJobProcessor<OutgoingQueueStep>, OutgoingQueueProcessor>()
+                .BuildServiceProvider();
         }
 
         private static void ConfigureNebula()
@@ -71,8 +81,8 @@ namespace Wormhole.Worker
                 AppConfiguration.GetConnectionString("mongoConnectionString");
             NebulaContext.RedisConnectionString =
                 AppConfiguration.GetConnectionString("redisConnectionString");
-
-            var delayedQueueProcessor = Composer.GetComponent(typeof(IFinalizableJobProcessor<OutgoingQueueStep>));
+            
+            var delayedQueueProcessor = ServiceProvider.GetService<IFinalizableJobProcessor<OutgoingQueueStep>>();
             NebulaContext.RegisterJobProcessor(delayedQueueProcessor, typeof(OutgoingQueueStep));
         }
 
