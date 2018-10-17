@@ -9,11 +9,11 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class PublishMessageController : ControllerBase
     {
-        private IPublishMessageLogic PublishMessageLogic;
+        private readonly IPublishMessageLogic _publishMessageLogic;
 
         public PublishMessageController(IPublishMessageLogic publishMessageLogic)
         {
-            PublishMessageLogic = publishMessageLogic;
+            _publishMessageLogic = publishMessageLogic;
         }
 
         [HttpPost("publish")]
@@ -24,7 +24,7 @@ namespace Wormhole.Api.Controllers
                 return BadRequest(new { Message = ErrorKeys.ParameterNull});
             }
 
-            var result = PublishMessageLogic.ProduceMessage(input);
+            var result = _publishMessageLogic.ProduceMessage(input);
 
             if (result.Error != null)
                 return BadRequest(new { Message = result.Error });
