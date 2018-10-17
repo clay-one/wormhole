@@ -1,14 +1,13 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Security.Authentication.ExtendedProtection;
 using System.ServiceProcess;
-using log4net;
 using Nebula;
 
 namespace Wormhole.Worker
 {
     public class JobQueueWindowsService : ServiceBase
     {
-        private readonly ILog Logger = LogManager.GetLogger(Assembly.GetCallingAssembly(),"start");
         private readonly NebulaContext _nebulaContext;
 
         public JobQueueWindowsService(NebulaContext context)
@@ -19,17 +18,17 @@ namespace Wormhole.Worker
 
         protected override void OnStart(string[] args)
         {
-            Logger.Info("Worker starting");
+            Console.WriteLine("Worker starting");
             _nebulaContext.StartWorkerService();
-            Logger.Info("Worker started");
+            Console.WriteLine("Worker started");
 
         }
 
         protected override void OnStop()
         {
-            Logger.Info("Worker stopping");
+            Console.WriteLine("Worker stopping");
             _nebulaContext.StopWorkerService();
-            Logger.Info("Worker stopped");
+            Console.WriteLine("Worker stopped");
         }
     }
 }

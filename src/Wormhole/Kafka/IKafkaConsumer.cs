@@ -122,6 +122,19 @@ namespace CommonLogic.Kafka
         //     be unassigned and unsubscribed first.
         void Subscribe(string topic);
 
+        /// <summary>
+        ///     Update the subscription set to topics.
+        /// 
+        ///     Any previous subscription will be unassigned and unsubscribed first.
+        /// 
+        ///     The subscription set denotes the desired topics to consume and this
+        ///     set is provided to the partition assignor (one of the elected group
+        ///     members) for all clients which then uses the configured
+        ///     partition.assignment.strategy to assign the subscription sets's
+        ///     topics's partitions to the consumers, depending on their subscription.
+        /// </summary>
+        void Subscribe(IEnumerable<string> topics);
+
         //
         // Summary:
         //     Update the assignment set to partitions. The assignment set is the complete set

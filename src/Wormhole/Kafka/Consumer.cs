@@ -2,24 +2,24 @@
 using System.Threading;
 using CommonLogic.Kafka;
 using Confluent.Kafka;
-using log4net;
+using Microsoft.Extensions.Logging;
 
 namespace Wormhole.Kafka
 {
     public abstract class Consumer : IConsumer
     {
         private readonly IKafkaConsumer<Null, string> _consumer;
-        protected readonly ILog Log;
+        protected readonly ILogger Logger;
         protected readonly ConsumerDiagnostic ConsumerDiagnostic;
         private Thread _thread;
         private bool _continue = true;
 
 
-        protected Consumer(IKafkaConsumer<Null, string> consumer, ILog log, ConsumerDiagnostic consumerDiagnostic)
+        protected Consumer(IKafkaConsumer<Null, string> consumer, ILoggerFactory loggerFactory, ConsumerDiagnostic consumerDiagnostic)
         {
             _consumer = consumer;
             _consumer.SetDiagnostic(consumerDiagnostic);
-            Log = log;
+            Logger = loggerFactory.CreateLogger(nameof(Consumer));
             ConsumerDiagnostic = consumerDiagnostic;
         }
 
@@ -38,7 +38,7 @@ namespace Wormhole.Kafka
             {
                 _thread = new Thread(() =>
                 {
-                    LogicalThreadContext.Properties["MUID"] = Guid.NewGuid().ToString("N");
+                    //LogicalThreadContext.Properties["MUID"] = Guid.NewGuid().ToString("N");
                     do
                     {
                         try
@@ -47,7 +47,7 @@ namespace Wormhole.Kafka
                         }
                         catch (Exception e)
                         {
-                            Log.Error("exception in thread of consuming", e);
+                            Logger.LogError("exception in thread of consuming", e);
                             ConsumerDiagnostic.IncrementExceptionCount();
                         }
                     } while (_continue);

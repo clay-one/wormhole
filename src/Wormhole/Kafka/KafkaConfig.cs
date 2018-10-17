@@ -12,10 +12,9 @@ namespace Wormhole.Kafka
         public const string EnableAutoCommitKey = "enable.auto.commit";
         public const string DefaultTopicConfigKey = "default.topic.config";
         public string BootstrapServers { get; set; }
-        public Dictionary<string, object> DefaultTopicConfig { get; set; }
         public string ServerAddress { get; set; }
-        public int ConsumerAutoCommitIntervalMs { get; set; }
-        public int StatisticsIntervalMs { get; set; }
-        public int EnableAutoCommit { get; set; }
+        public string ConsumerAutoCommitIntervalMs { get; set; }
+        public string StatisticsIntervalMs { get; set; }
+        public string EnableAutoCommit { get; set; }
     }
 }
