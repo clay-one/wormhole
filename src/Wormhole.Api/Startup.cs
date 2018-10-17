@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Wormhole.Api.Logging;
 using Wormhole.Kafka;
 using Wormhole.Logic;
+using Wormhole.Utils;
 
 namespace Wormhole.Api
 {
@@ -31,7 +31,14 @@ namespace Wormhole.Api
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
-            services.Configure<KafkaConfig>(Configuration.GetSection("KafkaConfig"));
+            ConfigureAppSettingObjects(services);
+        }
+
+        private void ConfigureAppSettingObjects(IServiceCollection services)
+        {
+            services.Configure<KafkaConfig>(Configuration.GetSection(Constants.KafkaConfig));
+            AppSettingsProvider.MongoConnectionString =
+                Configuration.GetConnectionString(Constants.MongoConnectionString);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,7 +60,7 @@ namespace Wormhole.Api
 
         private void ConfigureLog4Net(string contentRootPath, ILoggerFactory loggerFactory)
         {
-            var rootLogFolder = Configuration.GetSection("logging").GetChildren().FirstOrDefault(a => a.Key == "RootLogFolder")?.Value;
+            var rootLogFolder = Configuration.GetSection("logging").GetChildren().FirstOrDefault(a => a.Key == "RootLogFolder").Value;
             if (string.IsNullOrWhiteSpace(rootLogFolder))
             {
                 var appRootPath = contentRootPath;
