@@ -19,6 +19,7 @@ using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
 using Wormhole.Kafka;
+using Wormhole.Logic;
 using Wormhole.Utils;
 
 namespace Wormhole.Worker
@@ -133,6 +134,8 @@ namespace Wormhole.Worker
             return new ServiceCollection()
                 .AddLogging()
                 .AddSingleton<ITenantDA, TenantDA>()
+                .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
+                .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddSingleton<IKafkaConsumer<Null, string>, KafkaConsumer>()
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
                 .AddSingleton<IFinalizableJobProcessor<OutgoingQueueStep>, OutgoingQueueProcessor>()
@@ -165,13 +168,14 @@ namespace Wormhole.Worker
             return builder.Build();
         }
 
-        private static async void OnMessageEventHandlerAsync(object sender, Message<Null, string> message)
+        private static void OnMessageEventHandlerAsync(object sender, Message<Null, string> message)
         {
             Logger.LogDebug(message.Value);
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
             var step = new OutgoingQueueStep();
 
-            await NebulaContext.GetJobQueue<OutgoingQueueStep>(QueueType.Delayed).Enqueue(step, JobId);
+            var queue= NebulaContext.GetDelayedJobQueue<OutgoingQueueStep>(QueueType.Delayed);
+            queue.Enqueue(step, DateTime.UtcNow.AddSeconds(-5),JobId).GetAwaiter().GetResult();
         }
 
 

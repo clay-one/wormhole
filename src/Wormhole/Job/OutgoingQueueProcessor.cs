@@ -19,17 +19,18 @@ namespace Wormhole.Job
 
         public Task<long> GetTargetQueueLength()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0L);
         }
 
         public void Initialize(JobData jobData, NebulaContext nebulaContext)
         {
-            throw new NotImplementedException();
+          //  throw new NotImplementedException();
         }
 
         public Task JobCompleted()
         {
-            throw new NotImplementedException();
+            return null;
+            //throw new NotImplementedException();
         }
 
         public async Task<JobProcessingResult> Process(List<OutgoingQueueStep> items)
