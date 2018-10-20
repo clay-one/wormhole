@@ -13,18 +13,19 @@ namespace Wormhole.Logic
 {
     public class PublishMessageLogic : IPublishMessageLogic
     {
-        private readonly IKafkaProducer _producer;
         private static HttpClient _httpClient;
+        private readonly IKafkaProducer _producer;
 
         public PublishMessageLogic(IKafkaProducer producer)
         {
             _producer = producer;
             _httpClient = new HttpClient();
         }
+
         public ProduceMessageOutput ProduceMessage(PublishInput input)
         {
             try
-            {         
+            {
                 _producer.Produce(input);
 
                 return new ProduceMessageOutput
@@ -36,11 +37,10 @@ namespace Wormhole.Logic
             {
                 return new ProduceMessageOutput
                 {
-                    
                     Success = false,
                     Error = ErrorKeys.UnableProduceMessage
                 };
-            }              
+            }
         }
 
         public async Task<SendMessageOutput> SendMessage(OutgoingQueueStep message)
@@ -48,14 +48,19 @@ namespace Wormhole.Logic
             var httpContent = CreateContent(message);
 
             var response =
-               await _httpClient.PostAsync("message/post", httpContent);
+                await _httpClient.PostAsync("http://s1ghasedak10:8006/api/v2/receive/incoming", httpContent);
 
-            var result = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+
+            }
+           
+            
 
             return null;
         }
 
-        public static HttpContent CreateContent<T>(T body, Dictionary<string, string> headers = null)
+        private static HttpContent CreateContent<T>(T body, Dictionary<string, string> headers = null)
         {
             var serializer = new JsonSerializer<T>();
             var stringified = serializer.SerializeToString(body);

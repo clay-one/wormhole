@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Nebula;
 using Nebula.Queue;
@@ -9,7 +10,7 @@ namespace Wormhole.Job
 {
     public class OutgoingQueueProcessor : IFinalizableJobProcessor<OutgoingQueueStep>
     {
-        private IPublishMessageLogic _publishMessageLogic;
+        private readonly IPublishMessageLogic _publishMessageLogic;
 
         public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic)
         {
@@ -18,17 +19,17 @@ namespace Wormhole.Job
 
         public Task<long> GetTargetQueueLength()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public void Initialize(JobData jobData, NebulaContext nebulaContext)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task JobCompleted()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public async Task<JobProcessingResult> Process(List<OutgoingQueueStep> items)
@@ -38,7 +39,7 @@ namespace Wormhole.Job
             foreach (var item in items)
             {
                 var result = await _publishMessageLogic.SendMessage(item);
-                
+
                 if (result?.Error != null)
                     errorList.Add(result.Error);
             }
