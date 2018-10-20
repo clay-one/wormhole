@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Wormhole
+﻿namespace Wormhole
 {
     public static class ErrorKeys
     {
