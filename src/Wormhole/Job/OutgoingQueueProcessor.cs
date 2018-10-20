@@ -34,17 +34,20 @@ namespace Wormhole.Job
 
         public async Task<JobProcessingResult> Process(List<OutgoingQueueStep> items)
         {
-            var errorList = new List<string>();
+            var failCount = 0;
 
             foreach (var item in items)
             {
                 var result = await _publishMessageLogic.SendMessage(item);
 
-                if (result?.Error != null)
-                    errorList.Add(result.Error);
+                if (!result.Success)
+                    failCount++;
             }
 
-            return null;
+            return new JobProcessingResult
+            {
+                ItemsFailed = failCount
+            };
         }
     }
 }

@@ -19,7 +19,10 @@ namespace Wormhole.Logic
         public PublishMessageLogic(IKafkaProducer producer)
         {
             _producer = producer;
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            };
         }
 
         public ProduceMessageOutput ProduceMessage(PublishInput input)
@@ -47,17 +50,32 @@ namespace Wormhole.Logic
         {
             var httpContent = CreateContent(message);
 
-            var response =
-                await _httpClient.PostAsync("http://s1ghasedak10:8006/api/v2/receive/incoming", httpContent);
+            for (var i = 0; i < 3; i++)
+                try
+                {
+                    var response =
+                        await _httpClient.PostAsync("http://s1ghasedak10:8006/api/v2/receive/incoming", httpContent);
 
-            if (response.IsSuccessStatusCode)
+                    if (response.IsSuccessStatusCode)
+                        return new SendMessageOutput
+                        {
+                            Success = true
+                        };
+
+                    return new SendMessageOutput
+                    {
+                        Success = false
+                    };
+                }
+
+                catch (TimeoutException ex)
+                {
+                }
+
+            return new SendMessageOutput
             {
-
-            }
-           
-            
-
-            return null;
+                Success = false
+            };
         }
 
         private static HttpContent CreateContent<T>(T body, Dictionary<string, string> headers = null)
