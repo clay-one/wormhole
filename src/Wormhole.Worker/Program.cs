@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 using Nebula;
 using Nebula.Queue;
 using Nebula.Queue.Implementation;
+using Nebula.Storage.Model;
+using Newtonsoft.Json;
+using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
 using Wormhole.Kafka;
@@ -26,6 +29,7 @@ namespace Wormhole.Worker
         private static readonly IConfigurationRoot AppConfiguration = BuildConfiguration(Directory.GetCurrentDirectory());
         private static readonly ServiceProvider ServiceProvider = ConfigureServices();
         private static ILogger<Program> Logger { get; set; }
+        public static string JobId { get; set; }
 
         public static void Main(string[] args)
         {
@@ -36,8 +40,28 @@ namespace Wormhole.Worker
                 AppConfiguration.GetConnectionString(Constants.MongoConnectionString);
             StartNebulaService();
             var topics = GetTopics().GetAwaiter().GetResult();
+            JobId = CreateJob().GetAwaiter().GetResult();
             StartConsuming(topics);
 
+        }
+
+        private static async Task<string> CreateJob()
+        {
+            var parameters = new OutgoingQueueParameters();
+            var jobId = await NebulaContext.GetJobManager().CreateNewJobOrUpdateDefinition<OutgoingQueueStep>("__none__",
+                $"Wormhole-",
+                configuration: new JobConfigurationData
+                {
+                    MaxBatchSize = 1,
+                    MaxConcurrentBatchesPerWorker = 5,
+                    IdleSecondsToCompletion = 30,
+                    MaxBlockedSecondsPerCycle = 60,
+                    MaxTargetQueueLength = 100000,
+                    Parameters = JsonConvert.SerializeObject(parameters),
+                    QueueTypeName = QueueType.Delayed
+                });
+            await NebulaContext.GetJobManager().StartJob("__none__", jobId);
+            return jobId;
         }
 
         private static async Task<List<string>> GetTopics()
@@ -55,7 +79,7 @@ namespace Wormhole.Worker
             {
                 new KeyValuePair<string, object>("group.id","GroupId")
             };
-            consumer.Initialize(config, OnMessageEventHandler);
+            consumer.Initialize(config, OnMessageEventHandlerAsync);
             try
             {
                 consumer.Subscribe(topics);
@@ -141,9 +165,13 @@ namespace Wormhole.Worker
             return builder.Build();
         }
 
-        private static void OnMessageEventHandler(object sender, Message<Null, string> message)
+        private static async void OnMessageEventHandlerAsync(object sender, Message<Null, string> message)
         {
             Logger.LogDebug(message.Value);
+            var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
+            var step = new OutgoingQueueStep();
+
+            await NebulaContext.GetJobQueue<OutgoingQueueStep>(QueueType.Delayed).Enqueue(step, JobId);
         }
 
 

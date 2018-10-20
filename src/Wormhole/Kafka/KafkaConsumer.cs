@@ -84,7 +84,7 @@ namespace Wormhole.Kafka
 
         public void Initialize(ICollection<KeyValuePair<string, object>> config, EventHandler<Message<Null, string>> onMessageEventHandler)
         {
-            OnMessage += onMessageEventHandler;
+            OnMessage = onMessageEventHandler;
             config.Add(new KeyValuePair<string, object>(KafkaConfig.BootstrapServersKey,
                 _configuration.ServerAddress));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.ConsumerAutoCommitIntervalMsKey, 
