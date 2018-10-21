@@ -59,7 +59,8 @@ namespace Wormhole.Worker
                     MaxBlockedSecondsPerCycle = 60,
                     MaxTargetQueueLength = 100000,
                     Parameters = JsonConvert.SerializeObject(parameters),
-                    QueueTypeName = QueueType.Delayed
+                    QueueTypeName = QueueType.Delayed,
+                    IsIndefinite = true
                 });
             await NebulaContext.GetJobManager().StartJob("__none__", jobId);
             return jobId;
