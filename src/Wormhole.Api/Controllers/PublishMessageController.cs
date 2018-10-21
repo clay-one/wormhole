@@ -6,7 +6,7 @@ using Wormhole.Logic;
 
 namespace Wormhole.Api.Controllers
 {
-    [Route("api/message")]
+    [Route("message")]
     [ApiController]
     public class PublishMessageController : ControllerBase
     {
