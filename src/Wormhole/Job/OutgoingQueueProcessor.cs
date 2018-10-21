@@ -29,8 +29,7 @@ namespace Wormhole.Job
 
         public Task JobCompleted()
         {
-            return null;
-            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public async Task<JobProcessingResult> Process(List<OutgoingQueueStep> items)
