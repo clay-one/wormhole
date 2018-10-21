@@ -48,6 +48,7 @@ namespace Wormhole.Worker
 
         private static async Task<string> CreateJob()
         {
+            // todo: static job might be a better choice
             var parameters = new OutgoingQueueParameters();
             var jobId = await NebulaContext.GetJobManager().CreateNewJobOrUpdateDefinition<OutgoingQueueStep>("__none__",
                 $"Wormhole-",
@@ -76,6 +77,7 @@ namespace Wormhole.Worker
 
         private static void StartConsuming(List<string> topics)
         {
+            // todo: creating a Consumer class like the ones are exists in Ghasedak Project would be a better implementation. by inheriting abstract class Consumer
             var consumer = ServiceProvider.GetService<IKafkaConsumer<Null, string>>();
             ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>
             {
@@ -90,6 +92,7 @@ namespace Wormhole.Worker
             finally
             {
                 StopNebulaService();
+                // todo: null '?' (null conditional operator would be a safer choice)
                 consumer.Dispose();
             }
         }
