@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
 using Microsoft.Extensions.Options;
@@ -33,8 +34,13 @@ namespace Wormhole.Kafka
 
         public void Produce(PublishInput message)
         {
+            ProduceAsync(message).GetAwaiter().GetResult();
+        }
+
+        public async Task ProduceAsync(PublishInput message)
+        {
             var serializedObject = JsonConvert.SerializeObject(message, Formatting.None);
-            _serializingProducer.ProduceAsync(message.Tenant, null, serializedObject);
+            await _serializingProducer.ProduceAsync(message.Tenant, null, serializedObject);
         }
 
         public int Flush()
