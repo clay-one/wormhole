@@ -34,7 +34,9 @@ namespace Wormhole.Kafka
 
         public void Produce(PublishInput message)
         {
-            ProduceAsync(message).GetAwaiter().GetResult();
+#pragma warning disable 4014
+            ProduceAsync(message);
+#pragma warning restore 4014
         }
 
         public async Task ProduceAsync(PublishInput message)
