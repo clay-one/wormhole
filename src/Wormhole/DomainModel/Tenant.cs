@@ -12,11 +12,5 @@ namespace Wormhole.DomainModel
         public ObjectId Id { get; set; }
         public string Name { get; set; }
         public DateTime CreationTime { get; set; }
-
-        [BsonRepresentation(BsonType.String)]
-        public List<ChannelType> InputChannels { get; set; }
-
-        [BsonRepresentation(BsonType.String)]
-        public List<ChannelType> OutputChannels { get; set; }
     }
 }
