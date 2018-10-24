@@ -4,7 +4,7 @@
     {
         HttpPush =0,
         HttpPull =1,
-        KafkaTopic=2,
+        Kafka=2,
         RedisQueue=3
     }
 }
