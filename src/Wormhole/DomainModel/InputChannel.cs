@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Wormhole.DomainModel
 {
-    public class OutputChannel
+    public class InputChannel
     {
         [BsonId]
         public ObjectId Id { get; set; }
@@ -12,10 +12,6 @@ namespace Wormhole.DomainModel
         public ChannelType ChannelType { get; set; }
 
         public string TenantId { get; set; }
-
-        public string Category { get; set; }
-        public string Tag { get; set; }
         public bool HasMetaData { get; set; }
-        public OutputChannelSpecification TypeSpecification { get; set; }
     }
 }
