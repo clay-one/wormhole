@@ -1,4 +1,5 @@
-﻿using hydrogen.General.Validation;
+﻿using System.Threading.Tasks;
+using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Wormhole.Api.Model;
 using Wormhole.Job;
@@ -18,14 +19,14 @@ namespace Wormhole.Api.Controllers
         }
 
         [HttpPost("publish")]
-        public IActionResult Publish([FromBody] PublishInput input)
+        public async Task<IActionResult> Publish([FromBody] PublishInput input)
         {
             if (input?.Message == null || string.IsNullOrWhiteSpace(input.Tenant) || string.IsNullOrWhiteSpace(input.Tenant))
             {
                 return BadRequest(new { Message = ErrorKeys.ParameterNull});
             }
 
-            var result = _publishMessageLogic.ProduceMessage(input);
+            var result = await _publishMessageLogic.ProduceMessage(input);
 
             if (result.Error != null)
                 return BadRequest(new { Message = result.Error });

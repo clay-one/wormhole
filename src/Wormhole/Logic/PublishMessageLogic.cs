@@ -25,11 +25,11 @@ namespace Wormhole.Logic
             };
         }
 
-        public ProduceMessageOutput ProduceMessage(PublishInput input)
+        public async Task<ProduceMessageOutput> ProduceMessage(PublishInput input)
         {
             try
             {
-                _producer.Produce(input);
+                await _producer.ProduceAsync(input);
 
                 return new ProduceMessageOutput
                 {
