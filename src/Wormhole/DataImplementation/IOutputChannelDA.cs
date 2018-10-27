@@ -5,7 +5,7 @@ namespace Wormhole.DataImplementation
 {
     public interface IOutputChannelDA
     {
-        Task AddOutputChannel(OutputChannel tenant);
+        Task AddOutputChannel(OutputChannel channel);
 
     }
 }

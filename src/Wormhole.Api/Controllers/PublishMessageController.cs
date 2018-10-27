@@ -20,7 +20,7 @@ namespace Wormhole.Api.Controllers
         [HttpPost("publish")]
         public IActionResult Publish([FromBody] PublishInput input)
         {
-            if (input?.Message == null || string.IsNullOrWhiteSpace(input.Tenant) || string.IsNullOrWhiteSpace(input.Tenant))
+            if (input?.Payload == null || string.IsNullOrWhiteSpace(input.Tenant) || string.IsNullOrWhiteSpace(input.Tenant))
             {
                 return BadRequest(new { Message = ErrorKeys.ParameterNull});
             }

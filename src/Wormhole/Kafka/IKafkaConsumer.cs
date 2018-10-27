@@ -157,7 +157,7 @@ namespace CommonLogic.Kafka
         /// 
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="onMessageEventHandler">Event Handler on Recive Message</param>
+        /// <param name="onMessageEventHandler">Event Handler on Recive Payload</param>
         void Initialize(ICollection<KeyValuePair<string, object>> config, EventHandler<Message<Null, string>> onMessageEventHandler);
     }
 }

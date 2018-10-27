@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Wormhole.DataImplementation;
 using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
@@ -29,6 +30,7 @@ namespace Wormhole.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddScoped<IOutputChannelDA, OutputChannelDA>();
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
             ConfigureAppSettingObjects(services);
@@ -60,7 +62,7 @@ namespace Wormhole.Api
 
         private void ConfigureLog4Net(string contentRootPath, ILoggerFactory loggerFactory)
         {
-            var rootLogFolder = Configuration.GetSection("logging").GetChildren().FirstOrDefault(a => a.Key == "RootLogFolder").Value;
+            var rootLogFolder = Configuration.GetSection("logging").GetChildren().FirstOrDefault(a => a.Key == "RootLogFolder")?.Value;
             if (string.IsNullOrWhiteSpace(rootLogFolder))
             {
                 var appRootPath = contentRootPath;
