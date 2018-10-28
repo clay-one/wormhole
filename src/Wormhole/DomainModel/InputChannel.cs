@@ -12,6 +12,5 @@ namespace Wormhole.DomainModel
         public ChannelType ChannelType { get; set; }
 
         public string TenantId { get; set; }
-        public bool HasMetaData { get; set; }
     }
 }
