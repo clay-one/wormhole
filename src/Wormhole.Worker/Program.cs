@@ -185,7 +185,7 @@ namespace Wormhole.Worker
 
         private static void StopNebulaService()
         {
-            Console.WriteLine("Stopping the serivce...");
+            Console.WriteLine("Stopping the service...");
             NebulaContext.StopWorkerService();
             Console.WriteLine("Service stopped, everything looks clean.");
         }
