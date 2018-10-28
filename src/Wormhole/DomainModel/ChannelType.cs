@@ -2,9 +2,9 @@
 {
     public enum ChannelType
     {
-        HttpPush =0,
-        HttpPull =1,
-        KafkaTopic=2,
-        RedisQueue=3
+        HttpPush = 0,
+        HttpPull = 1,
+        Kafka = 2,
+        RedisQueue = 3
     }
 }
