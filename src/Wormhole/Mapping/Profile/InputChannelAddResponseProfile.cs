@@ -8,7 +8,7 @@ namespace Wormhole.Mapping.Profile
     {
         public InputChannelAddResponseProfile()
         {
-            CreateMap<InputChannel,InputChannelAddResponseProfile>();
+            CreateMap<InputChannel,InputChannelAddResponse>();
         }
     }
 }
