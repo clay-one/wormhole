@@ -43,7 +43,6 @@ namespace Wormhole.Worker
             var topics = GetTopics().GetAwaiter().GetResult();
             JobId = CreateJob().GetAwaiter().GetResult();
             StartConsuming(topics);
-
         }
 
         private static async Task<string> CreateJob()
@@ -77,6 +76,9 @@ namespace Wormhole.Worker
 
         private static void StartConsuming(List<string> topics)
         {
+            if (topics?.Count <1)
+                throw new Exception("There is no topic for message consumption");
+            
             // todo: creating a Consumer class like the ones are exists in Ghasedak Project would be a better implementation. by inheriting abstract class Consumer
             var consumer = ServiceProvider.GetService<IKafkaConsumer<Null, string>>();
             ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>

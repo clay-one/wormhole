@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Wormhole.Mapping.Profile;
 
 namespace Wormhole.Api.Configuration
 {
@@ -6,7 +7,11 @@ namespace Wormhole.Api.Configuration
     {
         public static void ConfigureAllMappers()
         {
-            var mapperConfiguration = new MapperConfiguration(config => { });
+            var mapperConfiguration = new MapperConfiguration(config =>
+            {
+                config.AddProfile(new InputChannelAddRequestProfile());
+                config.AddProfile(new InputChannelAddResponseProfile());
+            });
             Mapping.AutoMapper.Mapper = mapperConfiguration.CreateMapper();
         }
     }
