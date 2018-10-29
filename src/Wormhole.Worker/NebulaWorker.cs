@@ -69,7 +69,7 @@ namespace Wormhole.Worker
 
         private static async Task<List<string>> GetTopics()
         {
-            var tenantDa = ServiceProvider.GetService<ITenantDA>();
+            var tenantDa = ServiceProvider.GetService<ITenantDa>();
             var topics = await tenantDa.FindTenants();
             return topics.Select(t=>t.Name).ToList();
         }
@@ -140,7 +140,7 @@ namespace Wormhole.Worker
         {
             return new ServiceCollection()
                 .AddLogging()
-                .AddSingleton<ITenantDA, TenantDA>()
+                .AddSingleton<ITenantDa, TenantDa>()
                 .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddSingleton<IKafkaConsumer<Null, string>, KafkaConsumer>()

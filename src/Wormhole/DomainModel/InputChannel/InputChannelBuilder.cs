@@ -1,7 +1,7 @@
 ﻿using System;
 using Wormhole.Api.Model;
 
-namespace Wormhole.DomainModel
+namespace Wormhole.DomainModel.InputChannel
 {
     public static class InputChannelBuilder
     {
