@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wormhole.DataImplementation;
+using Wormhole.Interface;
 using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;

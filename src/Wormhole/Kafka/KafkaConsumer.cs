@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CommonLogic.Kafka;
 using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
 using Microsoft.Extensions.Logging;
@@ -31,10 +30,12 @@ namespace Wormhole.Kafka
 			OnOffsetsCommitted += OffsetsCommitted;
 			OnLog += Log;
         }
+
         private void Log(object sender, LogMessage e)
         {
             _logger.LogInformation($"{e.Facility,-12} : {e.Message}");
         }
+
         public void Dispose()
         {
             _consumer.Dispose();
@@ -80,7 +81,6 @@ namespace Wormhole.Kafka
         {
             _consumerDiagnostic = consumerDiagnostic;
         }
-
 
         public void Initialize(ICollection<KeyValuePair<string, object>> config, EventHandler<Message<Null, string>> onMessageEventHandler)
         {

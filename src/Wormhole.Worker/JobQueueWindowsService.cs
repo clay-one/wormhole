@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Reflection;
-using System.Security.Authentication.ExtendedProtection;
 using System.ServiceProcess;
 using Nebula;
 

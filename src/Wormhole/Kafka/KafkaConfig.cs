@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Wormhole.Kafka
+﻿namespace Wormhole.Kafka
 {
     public class KafkaConfig
     {
-
         public const string SectionName = "Kafka";
         public const string BootstrapServersKey = "bootstrap.servers";
         public const string ConsumerAutoCommitIntervalMsKey = "auto.commit.interval.ms";
