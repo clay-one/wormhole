@@ -1,4 +1,4 @@
-﻿namespace Wormhole
+﻿namespace Wormhole.Utils
 {
     public class Constants
     {

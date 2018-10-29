@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Confluent.Kafka;
-using Wormhole.Kafka;
 
-namespace CommonLogic.Kafka
+namespace Wormhole.Kafka
 {
     public interface IKafkaConsumer<TKey, TValue>
     {
