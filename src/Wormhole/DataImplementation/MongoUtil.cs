@@ -4,7 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Wormhole.Utils;
 
-namespace Wormhole
+namespace Wormhole.DataImplementation
 {
     public class MongoUtil
     {

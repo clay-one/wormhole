@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Wormhole.DomainModel;
+using Wormhole.DTO;
 using Wormhole.Interface;
 
 namespace Wormhole.Logic

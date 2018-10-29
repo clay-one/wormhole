@@ -32,8 +32,8 @@ namespace Wormhole.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddScoped<IOutputChannelDA, OutputChannelDA>();
-            services.AddScoped<IInputChannelDA, InputChannelDA>();
+            services.AddScoped<IOutputChannelDa, OutputChannelDa>();
+            services.AddScoped<IInputChannelDa, InputChannelDa>();
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
             ConfigureAppSettingObjects(services);

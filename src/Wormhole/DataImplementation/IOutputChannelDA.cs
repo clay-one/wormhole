@@ -3,9 +3,8 @@ using Wormhole.DomainModel;
 
 namespace Wormhole.DataImplementation
 {
-    public interface IOutputChannelDA
+    public interface IOutputChannelDa
     {
         Task AddOutputChannel(OutputChannel channel);
-
     }
 }

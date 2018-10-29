@@ -5,7 +5,7 @@ using Wormhole.DomainModel;
 
 namespace Wormhole.DataImplementation
 {
-    public class TenantDA : ITenantDA
+    public class TenantDa : ITenantDa
     {
         private IMongoCollection<Tenant> TenantCollection
             => MongoUtil.GetCollection<Tenant>(nameof(Tenant));

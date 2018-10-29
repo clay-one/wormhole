@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Wormhole.DomainModel;
 
-namespace Wormhole
+namespace Wormhole.DataImplementation
 {
-    public interface ITenantDA
+    public interface ITenantDa
     {
         Task<List<Tenant>> FindTenants();
         Task AddTenant(Tenant tenant);
