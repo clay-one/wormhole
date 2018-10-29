@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Wormhole.Api.Configuration;
 using Wormhole.DataImplementation;
 using Wormhole.Kafka;
 using Wormhole.Logic;
@@ -31,6 +32,7 @@ namespace Wormhole.Api
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddScoped<IOutputChannelDA, OutputChannelDA>();
+            services.AddScoped<IInputChannelDA, InputChannelDA>();
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
             ConfigureAppSettingObjects(services);
@@ -55,9 +57,15 @@ namespace Wormhole.Api
             {
                 app.UseHsts();
             }
-            
+
+            ConfigureTypeMappings(app);
             MapWebApi(app);
             app.UseHttpsRedirection();
+        }
+
+        private void ConfigureTypeMappings(IApplicationBuilder app)
+        {
+            AutoMapperConfig.ConfigureAllMappers();
         }
 
         private void ConfigureLog4Net(string contentRootPath, ILoggerFactory loggerFactory)
