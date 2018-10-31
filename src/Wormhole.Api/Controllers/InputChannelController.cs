@@ -22,7 +22,7 @@ namespace Wormhole.Api.Controllers
         [HttpPost("http-push")]
         public async Task<IActionResult> AddHttpPushInputChannel(HttpPushInputputChannelAddRequest input)
         {
-            var channel = InputChannelBuilder.CreateHttpPushInputChannel(input);
+            var channel = Mapping.AutoMapper.Mapper.Map<InputChannel>(input);
             await _inputChannelDA.AddInputChannelAsync(channel);
             return Ok(ApiValidatedResult<InputChannelAddResponse>.Ok(Mapping.AutoMapper.Mapper.Map<InputChannelAddResponse>(channel)));
 
