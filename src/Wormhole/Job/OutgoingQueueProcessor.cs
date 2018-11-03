@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Nebula;
 using Nebula.Queue;
 using Nebula.Storage.Model;
-using Wormhole.Logic;
+using Wormhole.Interface;
 
 namespace Wormhole.Job
 {

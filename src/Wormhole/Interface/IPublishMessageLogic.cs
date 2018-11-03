@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Wormhole.Api.Model;
+using Wormhole.DTO;
 using Wormhole.Job;
-using Wormhole.Models;
 
-namespace Wormhole.Logic
+namespace Wormhole.Interface
 {
     public interface IPublishMessageLogic
     {

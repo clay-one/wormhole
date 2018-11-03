@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Configuration;
 using Wormhole.DataImplementation;
+using Wormhole.Interface;
 using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
@@ -31,9 +32,11 @@ namespace Wormhole.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddScoped<IOutputChannelDA, OutputChannelDA>();
-            services.AddScoped<IInputChannelDA, InputChannelDA>();
+            services.AddScoped<IOutputChannelDa, OutputChannelDa>();
+            services.AddScoped<IInputChannelDa, InputChannelDa>();
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
+            services.AddScoped<ITenantLogic, TenantLogic>();
+            services.AddScoped<ITenantDa, TenantDa>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
             ConfigureAppSettingObjects(services);
         }

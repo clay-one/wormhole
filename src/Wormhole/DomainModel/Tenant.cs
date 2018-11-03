@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -11,6 +10,8 @@ namespace Wormhole.DomainModel
         [BsonId]
         public ObjectId Id { get; set; }
         public string Name { get; set; }
+        public string Identifier { get; set; }
         public DateTime CreationTime { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

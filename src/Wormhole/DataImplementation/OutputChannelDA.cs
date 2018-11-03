@@ -5,7 +5,7 @@ using Wormhole.DomainModel;
 
 namespace Wormhole.DataImplementation
 {
-    public class OutputChannelDA : IOutputChannelDA
+    public class OutputChannelDa : IOutputChannelDa
     {
         private IMongoCollection<OutputChannel> OutputChannelCollection
             => MongoUtil.GetCollection<OutputChannel>(nameof(OutputChannel));

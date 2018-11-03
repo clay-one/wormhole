@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Wormhole.DomainModel;
+using Wormhole.DTO;
 
-namespace Wormhole
+namespace Wormhole.DataImplementation
 {
-    public interface ITenantDA
+    public interface ITenantDa
     {
         Task<List<Tenant>> FindTenants();
-        Task AddTenant(Tenant tenant);
-
+        Task<AddTenantOutput> AddTenant(Tenant tenant);
     }
 }

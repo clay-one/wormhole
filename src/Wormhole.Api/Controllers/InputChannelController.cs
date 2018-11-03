@@ -1,10 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
-using Wormhole.DomainModel;
+using Wormhole.DomainModel.InputChannel;
 
 namespace Wormhole.Api.Controllers
 {
@@ -12,18 +11,18 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class InputChannelController : ControllerBase
     {
-        private readonly IInputChannelDA _inputChannelDA;
+        private readonly IInputChannelDa _inputChannelDa;
 
-        public InputChannelController(IInputChannelDA inputChannelDA)
+        public InputChannelController(IInputChannelDa inputChannelDa)
         {
-            _inputChannelDA = inputChannelDA;
+            _inputChannelDa = inputChannelDa;
         }
 
         [HttpPost("http-push")]
         public async Task<IActionResult> AddHttpPushInputChannel(HttpPushInputputChannelAddRequest input)
         {
-            var channel = Mapping.AutoMapper.Mapper.Map<InputChannel>(input);
-            await _inputChannelDA.AddInputChannelAsync(channel);
+            var channel = InputChannelBuilder.CreateHttpPushInputChannel(input);
+            await _inputChannelDa.AddInputChannelAsync(channel);
             return Ok(ApiValidatedResult<InputChannelAddResponse>.Ok(Mapping.AutoMapper.Mapper.Map<InputChannelAddResponse>(channel)));
 
         }

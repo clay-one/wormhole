@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Wormhole.DomainModel;
+using Wormhole.DomainModel.InputChannel;
 
 namespace Wormhole.DataImplementation
 {
-    public interface IInputChannelDA
+    public interface IInputChannelDa
     {
         Task AddInputChannelAsync(InputChannel channel);
-
     }
 }
