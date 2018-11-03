@@ -3,7 +3,7 @@ using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
-using Wormhole.DomainModel.InputChannel;
+using Wormhole.DomainModel;
 
 namespace Wormhole.Api.Controllers
 {
