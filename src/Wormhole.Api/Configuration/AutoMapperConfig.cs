@@ -11,6 +11,7 @@ namespace Wormhole.Api.Configuration
             {
                 config.AddProfile(new InputChannelAddRequestProfile());
                 config.AddProfile(new InputChannelAddResponseProfile());
+                config.AddProfile(new AddTenantRequestProfile());
             });
             Mapping.AutoMapper.Mapper = mapperConfiguration.CreateMapper();
         }
