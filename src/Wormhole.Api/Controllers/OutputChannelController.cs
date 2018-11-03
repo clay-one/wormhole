@@ -21,45 +21,19 @@ namespace Wormhole.Api.Controllers
         [HttpPost("http-push")]
         public async Task<IActionResult> AddHttpPushOutputChannel(HttpPushOutputChannelAddRequest input)
         {
-            var channel = OutputChannelBuilder.CreateHttpPushOutputChannel(input.ExternalKey, input.TenantId, input.Category, input.Tag, input.TargetUrl, input.PayloadOnly);
+            var channel = Mapping.AutoMapper.Mapper.Map<OutputChannel>(input);
             await _outputChannelDa.AddOutputChannel(channel);
-            var output = MapToHttpOutput(channel);
+            var output = Mapping.AutoMapper.Mapper.Map<HttpPushOutputChannelAddResponse>(channel);
             return Ok(ApiValidatedResult<HttpPushOutputChannelAddResponse>.Ok(output));
         }
 
         [HttpPost("kafka")]
         public async Task<IActionResult> AddKafkaOutputChannel(KafkaOutputChannelAddRequest input)
         {
-            var channel = OutputChannelBuilder.CreateKafkaOutputChannel(input.ExternalKey,input.TenantId, input.Category, input.Tag, input.TopicId);
+            var channel = Mapping.AutoMapper.Mapper.Map<OutputChannel>(input);
             await _outputChannelDa.AddOutputChannel(channel);
-            var output = MapToKafkaOutput(channel);
+            var output = Mapping.AutoMapper.Mapper.Map<KafkaOutputChannelAddResponse>(channel);
             return Ok(ApiValidatedResult<KafkaOutputChannelAddResponse>.Ok(output));
-        }
-
-        private HttpPushOutputChannelAddResponse MapToHttpOutput(OutputChannel channel)
-        {
-            var outputChannel = new HttpPushOutputChannelAddResponse
-            {
-                ExternalKey = channel.ExternalKey,
-                TenantId = channel.TenantId,
-                Category = channel.FilterCriteria.Category,
-                Tag = channel.FilterCriteria.Tag,
-                TargetUrl = ((HttpPushOutputChannelSpecification)channel.TypeSpecification).TargetUrl
-            };
-            return outputChannel;
-        }
-
-        private KafkaOutputChannelAddResponse MapToKafkaOutput(OutputChannel channel)
-        {
-            var outputChannel = new KafkaOutputChannelAddResponse
-            {
-                ExternalKey = channel.ExternalKey,
-                TenantId = channel.TenantId,
-                Category = channel.FilterCriteria.Category,
-                Tag = channel.FilterCriteria.Tag,
-                TopicId = ((KafkaOutputChannelSpecification)channel.TypeSpecification).TargetTopic
-            };
-            return outputChannel;
         }
     }
 }
