@@ -9,6 +9,7 @@ namespace Wormhole.DomainModel
         public OutputChannel()
         {
             Id = ObjectId.GenerateNewId();
+            FilterCriteria = new MessageFilterCriteria();
         }
 
         [BsonId]
