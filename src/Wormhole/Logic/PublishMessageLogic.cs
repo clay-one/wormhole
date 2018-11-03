@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using ServiceStack.Text;
 using Wormhole.Api.Model;
+using Wormhole.DTO;
+using Wormhole.Interface;
 using Wormhole.Job;
 using Wormhole.Kafka;
-using Wormhole.Models;
 
 namespace Wormhole.Logic
 {

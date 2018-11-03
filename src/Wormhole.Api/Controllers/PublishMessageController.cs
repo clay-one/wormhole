@@ -2,8 +2,7 @@
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Wormhole.Api.Model;
-using Wormhole.Job;
-using Wormhole.Logic;
+using Wormhole.Interface;
 
 namespace Wormhole.Api.Controllers
 {

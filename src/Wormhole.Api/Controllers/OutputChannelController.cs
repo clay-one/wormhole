@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Wormhole.Api.Model;
@@ -12,18 +11,18 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class OutputChannelController : ControllerBase
     {
-        private readonly IOutputChannelDA _outputChannelDA;
+        private readonly IOutputChannelDa _outputChannelDa;
 
-        public OutputChannelController(IOutputChannelDA outputChannelDA)
+        public OutputChannelController(IOutputChannelDa outputChannelDa)
         {
-            _outputChannelDA = outputChannelDA;
+            _outputChannelDa = outputChannelDa;
         }
 
         [HttpPost("http-push")]
         public async Task<IActionResult> AddHttpPushOutputChannel(HttpPushOutputChannelAddRequest input)
         {
             var channel = OutputChannelBuilder.CreateHttpPushOutputChannel(input.ExternalKey, input.TenantId, input.Category, input.Tag, input.TargetUrl, input.PayloadOnly);
-            await _outputChannelDA.AddOutputChannel(channel);
+            await _outputChannelDa.AddOutputChannel(channel);
             var output = MapToHttpOutput(channel);
             return Ok(ApiValidatedResult<HttpPushOutputChannelAddResponse>.Ok(output));
         }
@@ -32,7 +31,7 @@ namespace Wormhole.Api.Controllers
         public async Task<IActionResult> AddKafkaOutputChannel(KafkaOutputChannelAddRequest input)
         {
             var channel = OutputChannelBuilder.CreateKafkaOutputChannel(input.ExternalKey,input.TenantId, input.Category, input.Tag, input.TopicId);
-            await _outputChannelDA.AddOutputChannel(channel);
+            await _outputChannelDa.AddOutputChannel(channel);
             var output = MapToKafkaOutput(channel);
             return Ok(ApiValidatedResult<KafkaOutputChannelAddResponse>.Ok(output));
         }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using CommonLogic.Kafka;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 

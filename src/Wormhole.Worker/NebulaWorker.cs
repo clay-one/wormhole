@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading.Tasks;
-using CommonLogic.Kafka;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,20 +16,22 @@ using Nebula.Storage.Model;
 using Newtonsoft.Json;
 using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
+using Wormhole.Interface;
 using Wormhole.Job;
 using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
+using Constants = Wormhole.Utils.Constants;
 
 namespace Wormhole.Worker
 {
-    internal class Program
+    internal class NebulaWorker
     {
         private static readonly NebulaContext NebulaContext = new NebulaContext();
         private static readonly IConfigurationRoot AppConfiguration = BuildConfiguration(Directory.GetCurrentDirectory());
         private static readonly ServiceProvider ServiceProvider = ConfigureServices();
-        private static ILogger<Program> Logger { get; set; }
-        public static string JobId { get; set; }
+        private static ILogger<NebulaWorker> Logger { get; set; }
+        private static string JobId { get; set; }
 
         public static void Main(string[] args)
         {
@@ -68,7 +69,7 @@ namespace Wormhole.Worker
 
         private static async Task<List<string>> GetTopics()
         {
-            var tenantDa = ServiceProvider.GetService<ITenantDA>();
+            var tenantDa = ServiceProvider.GetService<ITenantDa>();
             var topics = await tenantDa.FindTenants();
             return topics.Select(t=>t.Name).ToList();
         }
@@ -130,7 +131,7 @@ namespace Wormhole.Worker
                 .AddLog4Net();
 
             Logger = ServiceProvider.GetService<ILoggerFactory>()
-                .CreateLogger<Program>();
+                .CreateLogger<NebulaWorker>();
             Logger.LogDebug("Starting application");
         }
 
@@ -139,7 +140,7 @@ namespace Wormhole.Worker
         {
             return new ServiceCollection()
                 .AddLogging()
-                .AddSingleton<ITenantDA, TenantDA>()
+                .AddSingleton<ITenantDa, TenantDa>()
                 .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddSingleton<IKafkaConsumer<Null, string>, KafkaConsumer>()
@@ -183,7 +184,6 @@ namespace Wormhole.Worker
             var queue= NebulaContext.GetDelayedJobQueue<OutgoingQueueStep>(QueueType.Delayed);
             queue.Enqueue(step, DateTime.UtcNow.AddSeconds(-5),JobId).GetAwaiter().GetResult();
         }
-
 
         private static void StopNebulaService()
         {

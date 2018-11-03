@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Wormhole.DomainModel
+namespace Wormhole.DomainModel.InputChannel
 {
     public class InputChannel
     {
