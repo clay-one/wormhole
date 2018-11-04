@@ -1,6 +1,5 @@
 ﻿using Wormhole.Api.Model;
-using Wormhole.DomainModel.InputChannel;
-
+using Wormhole.DomainModel;
 namespace Wormhole.Mapping.Profile
 {
     public class InputChannelAddResponseProfile : global::AutoMapper.Profile

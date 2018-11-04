@@ -1,4 +1,4 @@
-﻿namespace Wormhole.DomainModel.InputChannel
+﻿namespace Wormhole.DomainModel
 {
     public abstract class InputChannelSpecification
     {
