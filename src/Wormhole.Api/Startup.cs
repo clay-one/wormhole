@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Configuration;
 using Wormhole.DataImplementation;
+using Wormhole.DataImplementation.Configuration;
 using Wormhole.Interface;
 using Wormhole.Kafka;
 using Wormhole.Logic;
@@ -41,6 +42,19 @@ namespace Wormhole.Api
             ConfigureAppSettingObjects(services);
         }
 
+        private void ConfigureMongoConfigurationObjects()
+        {
+            var interfaceType = typeof(IMongoCollectionConfig);
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => interfaceType.IsAssignableFrom(p) && p.IsClass);
+            foreach (var type in types)
+            {
+                var config = (IMongoCollectionConfig) Activator.CreateInstance(type);
+                config.Configure();
+            }
+        }
+
         private void ConfigureAppSettingObjects(IServiceCollection services)
         {
             services.Configure<KafkaConfig>(Configuration.GetSection(Constants.KafkaConfig));
@@ -52,6 +66,9 @@ namespace Wormhole.Api
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             ConfigureLog4Net(env.ContentRootPath,loggerFactory);
+            ConfigureTypeMappings();
+            ConfigureMongoConfigurationObjects();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -61,12 +78,11 @@ namespace Wormhole.Api
                 app.UseHsts();
             }
 
-            ConfigureTypeMappings(app);
             MapWebApi(app);
             app.UseHttpsRedirection();
         }
 
-        private void ConfigureTypeMappings(IApplicationBuilder app)
+        private void ConfigureTypeMappings()
         {
             AutoMapperConfig.ConfigureAllMappers();
         }
