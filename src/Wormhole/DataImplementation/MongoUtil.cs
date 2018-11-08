@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Wormhole.Utils;
@@ -10,6 +12,8 @@ namespace Wormhole.DataImplementation
     {
         private static MongoClient _client;
         private static IMongoDatabase _database;
+        private static ILogger<MongoUtil> Logger { get; set; }
+
         private static bool IsInitialized => _client != null && _database != null;
 
         public static IMongoCollection<T> GetCollection<T>(string collectionName)
@@ -23,13 +27,23 @@ namespace Wormhole.DataImplementation
 
         private static void Initialize()
         {
-            var connectionString = GetConnectionString();
+            try
+            {
+                var connectionString = GetConnectionString();
 
-            var mongoUrl = MongoUrl.Create(connectionString);
-            var databaseName = mongoUrl.DatabaseName;
+                var mongoUrl = MongoUrl.Create(connectionString);
+                var databaseName = mongoUrl.DatabaseName;
 
-            _client = new MongoClient(mongoUrl);
-            _database = _client.GetDatabase(databaseName);
+                _client = new MongoClient(mongoUrl);
+                _database = _client.GetDatabase(databaseName);
+            }
+
+            catch (MongoConfigurationException ex)
+            {
+                Logger.LogError($"MongoDB Configuration ERROR: {ex.Message}",
+                    ex);
+                throw;
+            }
         }
 
         private static string GetConnectionString()

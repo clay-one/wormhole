@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using ServiceStack.Text;
 using Wormhole.Api.Model;
 using Wormhole.DTO;
@@ -16,6 +17,8 @@ namespace Wormhole.Logic
     {
         private static HttpClient _httpClient;
         private readonly IKafkaProducer _producer;
+
+        private static ILogger<PublishMessageLogic> Logger { get; set; }
 
         public PublishMessageLogic(IKafkaProducer producer)
         {
@@ -39,6 +42,9 @@ namespace Wormhole.Logic
             }
             catch (Exception ex)
             {
+                Logger.LogError($"PublishMessageLogic - ProduceMessage: {ex.Message}",
+                    ex);
+
                 return new ProduceMessageOutput
                 {
                     Success = false,
@@ -71,6 +77,8 @@ namespace Wormhole.Logic
 
                 catch (TimeoutException ex)
                 {
+                    Logger.LogError($"PublishMessageLogic - SendMessage: {ex.Message}",
+                        ex);
                 }
 
             return new SendMessageOutput

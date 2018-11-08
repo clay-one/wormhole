@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Nebula;
 using Nebula.Queue;
 using Nebula.Storage.Model;
@@ -10,6 +11,8 @@ namespace Wormhole.Job
     public class OutgoingQueueProcessor : IFinalizableJobProcessor<OutgoingQueueStep>
     {
         private readonly IPublishMessageLogic _publishMessageLogic;
+
+        private static ILogger<OutgoingQueueProcessor> Logger { get; set; }
 
         public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic)
         {
@@ -42,6 +45,8 @@ namespace Wormhole.Job
                 if (!result.Success)
                     failCount++;
             }
+
+            Logger.LogInformation($"OutgoingQueueProcessor - Process FailCount: {failCount}");
 
             return new JobProcessingResult
             {
