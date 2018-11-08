@@ -15,10 +15,10 @@ namespace Wormhole.Api.Controllers
 
         private static ILogger<PublishMessageController> Logger { get; set; }
 
-
-        public PublishMessageController(IPublishMessageLogic publishMessageLogic)
+        public PublishMessageController(IPublishMessageLogic publishMessageLogic, ILogger<PublishMessageController> logger)
         {
             _publishMessageLogic = publishMessageLogic;
+            Logger = logger;
         }
 
         [HttpPost("publish")]

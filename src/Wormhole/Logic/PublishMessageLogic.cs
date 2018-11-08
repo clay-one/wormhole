@@ -20,13 +20,14 @@ namespace Wormhole.Logic
 
         private static ILogger<PublishMessageLogic> Logger { get; set; }
 
-        public PublishMessageLogic(IKafkaProducer producer)
+        public PublishMessageLogic(IKafkaProducer producer, ILogger<PublishMessageLogic> logger)
         {
             _producer = producer;
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(10)
             };
+            Logger = logger;
         }
 
         public async Task<ProduceMessageOutput> ProduceMessage(PublishInput input)

@@ -15,6 +15,11 @@ namespace Wormhole.DataImplementation
 
         private static ILogger<TenantDa> Logger { get; set; }
 
+        public TenantDa(ILogger<TenantDa> logger)
+        {
+            Logger = logger;
+        }
+
         public async Task<List<Tenant>> FindTenants()
         {
             return await TenantCollection.Find(Builders<Tenant>.Filter.Empty).ToListAsync();

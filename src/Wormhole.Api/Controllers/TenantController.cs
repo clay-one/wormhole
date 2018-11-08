@@ -40,7 +40,8 @@ namespace Wormhole.Api.Controllers
                 return BadRequest(new { Message = result.Error });               
             }
 
-            return Ok(ApiValidationResult.Ok());
+            return Ok(ApiValidatedResult<AddTenantResponse>.Ok(
+                Mapping.AutoMapper.Mapper.Map<AddTenantResponse>(input)));
         }
 
         [HttpPut("")]

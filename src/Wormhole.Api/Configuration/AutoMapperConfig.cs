@@ -21,6 +21,7 @@ namespace Wormhole.Api.Configuration
                 config.AddProfile(new KafkaOutputChannelAddResponseProfile());
 
                 config.AddProfile(new AddTenantRequestProfile());
+                config.AddProfile(new AddTenantResponseProfile());
             });
             Mapping.AutoMapper.Mapper = mapperConfiguration.CreateMapper();
         }

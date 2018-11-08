@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -15,6 +14,11 @@ namespace Wormhole.DataImplementation
         private static ILogger<MongoUtil> Logger { get; set; }
 
         private static bool IsInitialized => _client != null && _database != null;
+
+        public MongoUtil(ILogger<MongoUtil> logger)
+        {
+            Logger = logger;
+        }
 
         public static IMongoCollection<T> GetCollection<T>(string collectionName)
         {

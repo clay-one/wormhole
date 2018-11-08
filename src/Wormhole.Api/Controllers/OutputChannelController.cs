@@ -16,9 +16,10 @@ namespace Wormhole.Api.Controllers
 
         private readonly IOutputChannelDa _outputChannelDa;
 
-        public OutputChannelController(IOutputChannelDa outputChannelDa)
+        public OutputChannelController(IOutputChannelDa outputChannelDa, ILogger<OutputChannelController> logger)
         {
             _outputChannelDa = outputChannelDa;
+            Logger = logger;
         }
 
         [HttpPost("http-push")]

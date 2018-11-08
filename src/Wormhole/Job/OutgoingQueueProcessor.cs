@@ -14,9 +14,10 @@ namespace Wormhole.Job
 
         private static ILogger<OutgoingQueueProcessor> Logger { get; set; }
 
-        public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic)
+        public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic, ILogger<OutgoingQueueProcessor> logger)
         {
             _publishMessageLogic = publishMessageLogic;
+            Logger = logger;
         }
 
         public Task<long> GetTargetQueueLength()

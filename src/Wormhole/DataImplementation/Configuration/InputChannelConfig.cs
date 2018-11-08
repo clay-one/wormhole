@@ -1,5 +1,5 @@
 ﻿using MongoDB.Driver;
-using Wormhole.DomainModel;
+using Wormhole.DomainModel.InputChannel;
 
 namespace Wormhole.DataImplementation.Configuration
 {
