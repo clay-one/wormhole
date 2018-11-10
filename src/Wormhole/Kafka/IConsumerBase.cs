@@ -1,6 +1,6 @@
 ﻿namespace Wormhole.Kafka
 {
-    public interface IConsumer
+    public interface IConsumerBase
     {
         void Start();
         void Stop();

@@ -5,20 +5,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Wormhole.Kafka
 {
-    public abstract class Consumer : IConsumer
+    public abstract class ConsumerBase : IConsumerBase
     {
         private readonly IKafkaConsumer<Null, string> _consumer;
-        protected readonly ILogger Logger;
-        protected readonly ConsumerDiagnostic ConsumerDiagnostic;
         private Thread _thread;
         private bool _continue = true;
 
+        protected readonly ILogger Logger;
+        protected readonly ConsumerDiagnostic ConsumerDiagnostic;
 
-        protected Consumer(IKafkaConsumer<Null, string> consumer, ILoggerFactory loggerFactory, ConsumerDiagnostic consumerDiagnostic)
+
+        protected ConsumerBase(IKafkaConsumer<Null, string> consumer, ILoggerFactory logger, ConsumerDiagnostic consumerDiagnostic)
         {
             _consumer = consumer;
             _consumer.SetDiagnostic(consumerDiagnostic);
-            Logger = loggerFactory.CreateLogger(nameof(Consumer));
+            Logger = logger.CreateLogger(nameof(ConsumerBase));
+
             ConsumerDiagnostic = consumerDiagnostic;
         }
 

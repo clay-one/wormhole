@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Nebula;
 using Nebula.Queue;
+using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
+using Newtonsoft.Json;
 using Wormhole.Interface;
 
 namespace Wormhole.Job
@@ -10,6 +14,10 @@ namespace Wormhole.Job
     public class OutgoingQueueProcessor : IFinalizableJobProcessor<OutgoingQueueStep>
     {
         private readonly IPublishMessageLogic _publishMessageLogic;
+        private string _jobId;
+        private IDelayedJobQueue<OutgoingQueueStep> _jobQueue;
+        private OutgoingQueueParameters _parameters;
+
 
         public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic)
         {
@@ -23,7 +31,21 @@ namespace Wormhole.Job
 
         public void Initialize(JobData jobData, NebulaContext nebulaContext)
         {
-          //  throw new NotImplementedException();
+            if (jobData == null)
+                throw new ArgumentNullException(nameof(jobData), ErrorKeys.ParameterNull);
+
+
+            if (nebulaContext == null)
+                throw new ArgumentNullException(nameof(nebulaContext), ErrorKeys.ParameterNull);
+
+            _jobQueue = nebulaContext.GetDelayedJobQueue<OutgoingQueueStep>(QueueType.Delayed);
+            _jobId = jobData.JobId;
+
+            var parametersString = jobData.Configuration?.Parameters;
+            if (string.IsNullOrWhiteSpace(parametersString))
+                throw new ArgumentNullException(nameof(jobData.Configuration.Parameters), ErrorKeys.ParameterNull);
+
+            _parameters = JsonConvert.DeserializeObject<OutgoingQueueParameters>(parametersString);
         }
 
         public Task JobCompleted()
@@ -33,20 +55,27 @@ namespace Wormhole.Job
 
         public async Task<JobProcessingResult> Process(List<OutgoingQueueStep> items)
         {
-            var failCount = 0;
+            return JobProcessingResult.Combine(
+                await Task.WhenAll(items.Select(ProcessOne).ToArray()));
+        }
 
-            foreach (var item in items)
+        private async Task<JobProcessingResult> ProcessOne(OutgoingQueueStep item)
+        {
+            var result = new JobProcessingResult();
+            var publishResult = await _publishMessageLogic.SendMessage(item);
+            if (publishResult.Success)
+                return result;
+
+            item.FailCount += 1;
+            if (item.FailCount<_parameters.RetryCount)
             {
-                var result = await _publishMessageLogic.SendMessage(item);
-
-                if (!result.Success)
-                    failCount++;
+                result.ItemsRequeued += 1;
+                await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval), _jobId);
+                return result;
             }
 
-            return new JobProcessingResult
-            {
-                ItemsFailed = failCount
-            };
+            result.ItemsFailed++;
+            return result;
         }
     }
 }

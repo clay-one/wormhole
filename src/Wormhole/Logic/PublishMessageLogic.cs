@@ -50,10 +50,6 @@ namespace Wormhole.Logic
         public async Task<SendMessageOutput> SendMessage(OutgoingQueueStep message)
         {
             var httpContent = CreateContent(message);
-
-            for (var i = 0; i < 3; i++)
-                try
-                {
                     var response =
                         await _httpClient.PostAsync("http://s1ghasedak10:8006/api/v2/receive/incoming", httpContent);
 
@@ -67,16 +63,6 @@ namespace Wormhole.Logic
                     {
                         Success = false
                     };
-                }
-
-                catch (TimeoutException ex)
-                {
-                }
-
-            return new SendMessageOutput
-            {
-                Success = false
-            };
         }
 
         private static HttpContent CreateContent<T>(T body, Dictionary<string, string> headers = null)
