@@ -60,6 +60,7 @@ namespace Wormhole.Api
             services.Configure<KafkaConfig>(Configuration.GetSection(Constants.KafkaConfig));
             AppSettingsProvider.MongoConnectionString =
                 Configuration.GetConnectionString(Constants.MongoConnectionString);
+            services.Configure<ClientConfig>(Configuration.GetSection(Constants.ClientConfig));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

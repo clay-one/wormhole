@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using ServiceStack.Text;
 using Wormhole.Api.Model;
 using Wormhole.DTO;
@@ -16,14 +17,17 @@ namespace Wormhole.Logic
     {
         private static HttpClient _httpClient;
         private readonly IKafkaProducer _producer;
+        private readonly ClientConfig _clientConfig;
 
-        public PublishMessageLogic(IKafkaProducer producer)
+        public PublishMessageLogic(IKafkaProducer producer, IOptions<ClientConfig> clientConfig)
         {
             _producer = producer;
+            _clientConfig = clientConfig.Value;
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(10)
             };
+             
         }
 
         public async Task<ProduceMessageOutput> ProduceMessage(PublishInput input)
@@ -50,8 +54,10 @@ namespace Wormhole.Logic
         public async Task<SendMessageOutput> SendMessage(OutgoingQueueStep message)
         {
             var httpContent = CreateContent(message);
+            var url = _clientConfig.Url;
+
                     var response =
-                        await _httpClient.PostAsync("http://s1ghasedak10:8006/api/v2/receive/incoming", httpContent);
+                        await _httpClient.PostAsync(url, httpContent);
 
                     if (response.IsSuccessStatusCode)
                         return new SendMessageOutput
