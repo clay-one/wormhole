@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
@@ -14,14 +14,12 @@ using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
-using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
 using Wormhole.Interface;
 using Wormhole.Job;
 using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
-using Constants = Wormhole.Utils.Constants;
 
 namespace Wormhole.Worker
 {
@@ -30,8 +28,10 @@ namespace Wormhole.Worker
         private static readonly NebulaContext NebulaContext = new NebulaContext();
         private static readonly IConfigurationRoot AppConfiguration = BuildConfiguration(Directory.GetCurrentDirectory());
         private static readonly ServiceProvider ServiceProvider = ConfigureServices();
+        private static readonly IDictionary<string, IConsumerBase> Consumers = new ConcurrentDictionary<string, IConsumerBase>();
         private static ILogger<NebulaWorker> Logger { get; set; }
         private static string JobId { get; set; }
+        private static string ConsumerTopicName { get; set; }
 
         public static void Main(string[] args)
         {
@@ -49,7 +49,12 @@ namespace Wormhole.Worker
         private static async Task<string> CreateJob()
         {
             // todo: static job might be a better choice
-            var parameters = new OutgoingQueueParameters();
+            var retryConfig = AppConfiguration.GetSection("RetryConfig");
+            var parameters = new OutgoingQueueParameters
+            {
+                RetryCount = int.Parse(retryConfig.GetChildren().FirstOrDefault(a => a.Key == "Count")?.Value),
+                RetryInterval = int.Parse(retryConfig.GetChildren().FirstOrDefault(a => a.Key == "Interval")?.Value)
+            };
             var jobId = await NebulaContext.GetJobManager().CreateNewJobOrUpdateDefinition<OutgoingQueueStep>("__none__",
                 $"Wormhole-",
                 configuration: new JobConfigurationData
@@ -77,27 +82,25 @@ namespace Wormhole.Worker
 
         private static void StartConsuming(List<string> topics)
         {
-            if (topics?.Count <1)
+            if (topics == null || topics.Count <1)
                 throw new Exception("There is no topic for message consumption");
-            
-            // todo: creating a Consumer class like the ones are exists in Ghasedak Project would be a better implementation. by inheriting abstract class Consumer
-            var consumer = ServiceProvider.GetService<IKafkaConsumer<Null, string>>();
-            ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>
+
+            foreach (var topic in topics)
             {
-                new KeyValuePair<string, object>("group.id","GroupId")
-            };
-            consumer.Initialize(config, OnMessageEventHandlerAsync);
-            try
-            {
-                consumer.Subscribe(topics);
-                while (true) consumer.Poll(TimeSpan.FromMilliseconds(500));
+                var consumer = GetConsumer(topic);
+                consumer.Start();
             }
-            finally
-            {
-                StopNebulaService();
-                // todo: null '?' (null conditional operator would be a safer choice)
-                consumer.Dispose();
-            }
+        }
+
+        private static IConsumerBase GetConsumer(string topic)
+        {
+            ConsumerTopicName = topic;
+            var consumer = Consumers.FirstOrDefault(c => c.Key == ConsumerTopicName).Value;
+            if (consumer != null) return consumer;
+            consumer = ServiceProvider.GetService<IConsumerBase>();
+            Consumers.Add(new KeyValuePair<string, IConsumerBase>(ConsumerTopicName, consumer));
+
+            return consumer;
         }
 
 
@@ -141,9 +144,11 @@ namespace Wormhole.Worker
             return new ServiceCollection()
                 .AddLogging()
                 .AddSingleton<ITenantDa, TenantDa>()
+                .AddSingleton(NebulaContext)
                 .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
-                .AddSingleton<IKafkaConsumer<Null, string>, KafkaConsumer>()
+                .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
+                .AddTransient<IConsumerBase, MessageConsumer>(sp=> new MessageConsumer(sp.GetService<IKafkaConsumer<Null,string>>(),sp.GetService<NebulaContext>(),sp.GetService<ILoggerFactory>(), ConsumerTopicName, JobId))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
                 .AddSingleton<IFinalizableJobProcessor<OutgoingQueueStep>, OutgoingQueueProcessor>()
                 .BuildServiceProvider();
@@ -173,23 +178,6 @@ namespace Wormhole.Worker
             builder = builder.AddEnvironmentVariables();
             
             return builder.Build();
-        }
-
-        private static void OnMessageEventHandlerAsync(object sender, Message<Null, string> message)
-        {
-            Logger.LogDebug(message.Value);
-            var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
-            var step = new OutgoingQueueStep();
-
-            var queue= NebulaContext.GetDelayedJobQueue<OutgoingQueueStep>(QueueType.Delayed);
-            queue.Enqueue(step, DateTime.UtcNow.AddSeconds(-5),JobId).GetAwaiter().GetResult();
-        }
-
-        private static void StopNebulaService()
-        {
-            Console.WriteLine("Stopping the service...");
-            NebulaContext.StopWorkerService();
-            Console.WriteLine("Service stopped, everything looks clean.");
         }
     }
 }
