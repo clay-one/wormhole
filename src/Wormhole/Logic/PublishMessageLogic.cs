@@ -30,7 +30,7 @@ namespace Wormhole.Logic
         {
             try
             {
-                await _producer.ProduceAsync(input);
+                _producer.Produce(input);
 
                 return new ProduceMessageOutput
                 {
