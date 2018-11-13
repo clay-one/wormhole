@@ -14,6 +14,8 @@ using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
+using NLog;
+using NLog.Extensions.Logging;
 using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
 using Wormhole.Interface;
@@ -127,8 +129,9 @@ namespace Wormhole.Worker
         private static void ConfigureLogging()
         {
             ServiceProvider
-                .GetService<ILoggerFactory>()
-                .AddLog4Net();
+                .GetService<ILoggerFactory>().AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
+            LogManager.LoadConfiguration("nlog.config");
+
 
             Logger = ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<NebulaWorker>();

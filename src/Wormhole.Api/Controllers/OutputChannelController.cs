@@ -12,7 +12,7 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class OutputChannelController : ControllerBase
     {
-        private static ILogger<OutputChannelController> Logger { get; set; }
+        private ILogger<OutputChannelController> Logger { get; set; }
 
         private readonly IOutputChannelDa _outputChannelDa;
 

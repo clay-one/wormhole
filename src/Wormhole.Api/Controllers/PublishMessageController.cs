@@ -13,7 +13,7 @@ namespace Wormhole.Api.Controllers
     {
         private readonly IPublishMessageLogic _publishMessageLogic;
 
-        private static ILogger<PublishMessageController> Logger { get; set; }
+        private ILogger<PublishMessageController> Logger { get; set; }
 
         public PublishMessageController(IPublishMessageLogic publishMessageLogic, ILogger<PublishMessageController> logger)
         {

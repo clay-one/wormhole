@@ -18,7 +18,7 @@ namespace Wormhole.Logic
         private static HttpClient _httpClient;
         private readonly IKafkaProducer _producer;
 
-        private static ILogger<PublishMessageLogic> Logger { get; set; }
+        private ILogger<PublishMessageLogic> Logger { get; set; }
 
         public PublishMessageLogic(IKafkaProducer producer, ILogger<PublishMessageLogic> logger)
         {

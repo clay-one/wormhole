@@ -1,5 +1,5 @@
 ﻿
-namespace Wormhole.DomainModel.InputChannel
+namespace Wormhole.DomainModel
 {
     public class HttpPushInputChannelSpecification : InputChannelSpecification
     {

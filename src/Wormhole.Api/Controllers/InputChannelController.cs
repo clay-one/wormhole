@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
-using Wormhole.DomainModel.InputChannel;
+using Wormhole.DomainModel;
 
 namespace Wormhole.Api.Controllers
 {
@@ -12,7 +12,7 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class InputChannelController : ControllerBase
     {
-        private static ILogger<InputChannelController> Logger { get; set; }
+        private ILogger<InputChannelController> Logger { get; set; }
         private readonly IInputChannelDa _inputChannelDa;
 
         public InputChannelController(IInputChannelDa inputChannelDa, ILogger<InputChannelController> logger)

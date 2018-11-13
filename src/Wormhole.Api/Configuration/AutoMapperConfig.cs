@@ -1,7 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper.Configuration;
-using Wormhole.Api.Model;
-using Wormhole.DomainModel;
 using Wormhole.Mapping.Profile;
 
 namespace Wormhole.Api.Configuration

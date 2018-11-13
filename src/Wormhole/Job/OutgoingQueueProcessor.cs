@@ -12,7 +12,7 @@ namespace Wormhole.Job
     {
         private readonly IPublishMessageLogic _publishMessageLogic;
 
-        private static ILogger<OutgoingQueueProcessor> Logger { get; set; }
+        private ILogger<OutgoingQueueProcessor> Logger { get; set; }
 
         public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic, ILogger<OutgoingQueueProcessor> logger)
         {

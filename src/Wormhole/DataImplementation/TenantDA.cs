@@ -13,7 +13,7 @@ namespace Wormhole.DataImplementation
         private IMongoCollection<Tenant> TenantCollection
             => MongoUtil.GetCollection<Tenant>(nameof(Tenant));
 
-        private static ILogger<TenantDa> Logger { get; set; }
+        private ILogger<TenantDa> Logger { get; set; }
 
         public TenantDa(ILogger<TenantDa> logger)
         {

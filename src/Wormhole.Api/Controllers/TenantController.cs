@@ -14,7 +14,7 @@ namespace Wormhole.Api.Controllers
     {
         private readonly ITenantLogic _tenantLogic;
 
-        private static ILogger<TenantController> Logger { get; set; } 
+        private ILogger<TenantController> Logger { get; set; } 
 
         public TenantController(ITenantLogic tenantLogic, ILogger<TenantController> logger)
         {

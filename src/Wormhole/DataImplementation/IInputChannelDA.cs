@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Wormhole.DomainModel.InputChannel;
+using Wormhole.DomainModel;
 
 namespace Wormhole.DataImplementation
 {
