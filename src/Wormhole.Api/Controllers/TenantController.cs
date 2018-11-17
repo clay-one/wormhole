@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Wormhole.Api.Model;
 using Wormhole.DomainModel;
 using Wormhole.Interface;
@@ -13,14 +14,19 @@ namespace Wormhole.Api.Controllers
     {
         private readonly ITenantLogic _tenantLogic;
 
-        public TenantController(ITenantLogic tenantLogic)
+        private ILogger<TenantController> Logger { get; set; } 
+
+        public TenantController(ITenantLogic tenantLogic, ILogger<TenantController> logger)
         {
             _tenantLogic = tenantLogic;
+            Logger = logger;
         }
 
         [HttpPost("")]
         public async Task<IActionResult> AddTenant(AddTenantRequest request)
         {
+            Logger.LogDebug($"TenantController - AddTenant method called with this input: {request}");
+
             if (string.IsNullOrWhiteSpace(request.Identifier) || string.IsNullOrWhiteSpace(request.Name))
             {
                 return BadRequest(new { Message = ErrorKeys.ParameterNull });
@@ -30,9 +36,12 @@ namespace Wormhole.Api.Controllers
             var result = await _tenantLogic.AddTenant(input);
 
             if (result?.Error != null)
-                return BadRequest(new { Message = result.Error });
+            {
+                return BadRequest(new { Message = result.Error });               
+            }
 
-            return Ok(ApiValidationResult.Ok());
+            return Ok(ApiValidatedResult<AddTenantResponse>.Ok(
+                Mapping.AutoMapper.Mapper.Map<AddTenantResponse>(input)));
         }
 
         [HttpPut("")]

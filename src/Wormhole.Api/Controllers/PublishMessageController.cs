@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Wormhole.Api.Model;
 using Wormhole.Interface;
 
@@ -12,14 +13,19 @@ namespace Wormhole.Api.Controllers
     {
         private readonly IPublishMessageLogic _publishMessageLogic;
 
-        public PublishMessageController(IPublishMessageLogic publishMessageLogic)
+        private ILogger<PublishMessageController> Logger { get; set; }
+
+        public PublishMessageController(IPublishMessageLogic publishMessageLogic, ILogger<PublishMessageController> logger)
         {
             _publishMessageLogic = publishMessageLogic;
+            Logger = logger;
         }
 
         [HttpPost("publish")]
         public async Task<IActionResult> Publish([FromBody] PublishInput input)
         {
+            Logger.LogDebug($"PublishMessageController - Publish method called with this input: {input}");
+
             if (input?.Payload == null || string.IsNullOrWhiteSpace(input.Tenant) || string.IsNullOrWhiteSpace(input.Tenant))
             {
                 return BadRequest(new { Message = ErrorKeys.ParameterNull});

@@ -14,6 +14,9 @@ using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
+using NLog;
+using NLog.Extensions.Logging;
+using Wormhole.Api.Model;
 using Wormhole.DataImplementation;
 using Wormhole.Interface;
 using Wormhole.Job;
@@ -39,7 +42,7 @@ namespace Wormhole.Worker
 
             ConfigureNebula();
             AppSettingsProvider.MongoConnectionString =
-                AppConfiguration.GetConnectionString(Constants.MongoConnectionString);
+                AppConfiguration.GetConnectionString(Utils.Constants.MongoConnectionString);
             StartNebulaService();
             var topics = GetTopics().GetAwaiter().GetResult();
             JobId = CreateJob().GetAwaiter().GetResult();
@@ -130,8 +133,9 @@ namespace Wormhole.Worker
         private static void ConfigureLogging()
         {
             ServiceProvider
-                .GetService<ILoggerFactory>()
-                .AddLog4Net();
+                .GetService<ILoggerFactory>().AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
+            LogManager.LoadConfiguration("nlog.config");
+
 
             Logger = ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<NebulaWorker>();
@@ -149,7 +153,7 @@ namespace Wormhole.Worker
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
                 .AddTransient<IConsumerBase, MessageConsumer>(sp=> new MessageConsumer(sp.GetService<IKafkaConsumer<Null,string>>(),sp.GetService<NebulaContext>(),sp.GetService<ILoggerFactory>(), ConsumerTopicName, JobId))
-                .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
+                .Configure<KafkaConfig>(AppConfiguration.GetSection(Utils.Constants.KafkaConfig))
                 .AddSingleton<IFinalizableJobProcessor<OutgoingQueueStep>, OutgoingQueueProcessor>()
                 .BuildServiceProvider();
         }

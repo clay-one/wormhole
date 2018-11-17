@@ -1,13 +1,13 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using log4net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using NLog.Web;
 using Wormhole.Api.Configuration;
 using Wormhole.DataImplementation;
 using Wormhole.DataImplementation.Configuration;
@@ -20,11 +20,10 @@ namespace Wormhole.Api
 {
     public class Startup
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(Startup));
-
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             Configuration = configuration;
+            env.ConfigureNLog("nlog.config");
         }
 
         public IConfiguration Configuration { get; }
@@ -65,7 +64,7 @@ namespace Wormhole.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            ConfigureLog4Net(env.ContentRootPath,loggerFactory);
+            ConfigureLogging(app,loggerFactory);
             ConfigureTypeMappings();
             ConfigureMongoConfigurationObjects();
 
@@ -87,22 +86,13 @@ namespace Wormhole.Api
             AutoMapperConfig.ConfigureAllMappers();
         }
 
-        private void ConfigureLog4Net(string contentRootPath, ILoggerFactory loggerFactory)
+        private void ConfigureLogging(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            var rootLogFolder = Configuration.GetSection("logging").GetChildren().FirstOrDefault(a => a.Key == "RootLogFolder")?.Value;
-            if (string.IsNullOrWhiteSpace(rootLogFolder))
-            {
-                var appRootPath = contentRootPath;
-                if (appRootPath == null)
-                    throw new InvalidOperationException(
-                        "Cannot configure log4net because HostingEnvironment.MapPath returns null");
+            //add NLog to ASP.NET Core
+            loggerFactory.AddNLog();
 
-                rootLogFolder = Path.GetFullPath(Path.Combine(appRootPath, "..\\log"));
-            }
-            GlobalContext.Properties["RootLogFolder"] = rootLogFolder;
-
-            loggerFactory.AddLog4Net();
-            Log.Info("Application started");
+            //add NLog.Web
+            app.AddNLogWeb();
         }
 
 

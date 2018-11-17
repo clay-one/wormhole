@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Nebula;
 using Nebula.Queue;
 using Nebula.Queue.Implementation;
@@ -18,10 +19,12 @@ namespace Wormhole.Job
         private IDelayedJobQueue<OutgoingQueueStep> _jobQueue;
         private OutgoingQueueParameters _parameters;
 
+        private ILogger<OutgoingQueueProcessor> Logger { get; set; }
 
-        public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic)
+        public OutgoingQueueProcessor(IPublishMessageLogic publishMessageLogic, ILogger<OutgoingQueueProcessor> logger)
         {
             _publishMessageLogic = publishMessageLogic;
+            Logger = logger;
         }
 
         public Task<long> GetTargetQueueLength()
@@ -73,6 +76,8 @@ namespace Wormhole.Job
                 await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval), _jobId);
                 return result;
             }
+
+            Logger.LogInformation($"OutgoingQueueProcessor - Process FailCount: {item.FailCount}");
 
             result.ItemsFailed++;
             return result;
