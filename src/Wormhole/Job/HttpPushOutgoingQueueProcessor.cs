@@ -75,17 +75,17 @@ namespace Wormhole.Job
             if (publishResult.Success)
                 return result;
 
+            result.ItemsFailed += 1;
             item.FailCount += 1;
+
             if (item.FailCount<_parameters.RetryCount)
             {
                 result.ItemsRequeued += 1;
                 await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval), _jobId);
-                return result;
             }
 
             Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount}");
 
-            result.ItemsFailed++;
             return result;
         }
 
