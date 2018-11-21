@@ -24,10 +24,9 @@ namespace Wormhole.Tests.LogicTests
         {
             var mockLogger = new Mock<ILogger<HttpPushOutgoingQueueProcessor>>();
             _processor = new HttpPushOutgoingQueueProcessor(mockLogger.Object);
-            
             _nebulaContext = new NebulaContext();
 
-            _nebulaContext.RegisterJobQueue(typeof(DelayedJobQueue<>), QueueType.Delayed);
+            _nebulaContext.RegisterJobQueue(typeof(MockDelayedQueue), QueueType.Delayed);
             _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
             
             _parameters = new HttpPushOutgoingQueueParameters
@@ -80,6 +79,31 @@ namespace Wormhole.Tests.LogicTests
             };
             _processor.Initialize(jobData, _nebulaContext);
             var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+            Assert.Equal(1, result.ItemsFailed);
+        }
+        [Fact]
+        public void Process_RetryWithWrongTargetUrl_Fail()
+        {
+            _parameters.TargetUrl += "/fake";
+            _parameters.RetryCount = 3;
+            _parameters.RetryInterval = 1;
+            _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+
+            var step = new HttpPushOutgoingQueueStep()
+            {
+                Category = "test_category",
+                FailCount = 0,
+                Payload = "test_message"
+            };
+            var jobData = new JobData()
+            {
+                JobId = "test_job_id",
+                Configuration = _jobConfiguration,
+                TenantId = TenantId
+            };
+            _processor.Initialize(jobData, _nebulaContext);
+            var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+            Assert.Equal(1, result.ItemsRequeued);
             Assert.Equal(1, result.ItemsFailed);
         }
 
