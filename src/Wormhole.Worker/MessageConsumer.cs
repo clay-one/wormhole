@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AutoMapper.Mappers;
-using ComposerCore.Attributes;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Nebula;
@@ -18,14 +16,12 @@ namespace Wormhole.Worker
     public class MessageConsumer : ConsumerBase
     {
         private readonly NebulaContext _nebulaContext;
-        private readonly string _jobId;
         private readonly string _topicName;
         
 
-        public MessageConsumer(IKafkaConsumer<Null, string> consumer,  NebulaContext nebulaContext, ILoggerFactory logger, string topicName, string jobId) : base(consumer, logger, ConsumerDiagnosticProvider.GetStat(typeof(MessageConsumer).FullName, topicName))
+        public MessageConsumer(IKafkaConsumer<Null, string> consumer,  NebulaContext nebulaContext, ILoggerFactory logger, string topicName) : base(consumer, logger, ConsumerDiagnosticProvider.GetStat(typeof(MessageConsumer).FullName, topicName))
         {
             _nebulaContext = nebulaContext;
-            _jobId = jobId;
             _topicName = topicName;
             ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>
             {
@@ -42,14 +38,20 @@ namespace Wormhole.Worker
         {
             Logger.LogDebug(message.Value);
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
-            var step = new OutgoingQueueStep
+
+            var jobIds = NebulaWorker.GetJobIds(publishInput.Tenant, publishInput.Category, publishInput.Tags);
+            if (jobIds == null || jobIds.Count < 1)
+                return;
+
+            var queue = _nebulaContext.GetDelayedJobQueue<HttpPushOutgoingQueueStep>(QueueType.Delayed);
+            var step = new HttpPushOutgoingQueueStep
             {
                 Payload = publishInput.Payload.ToString(),
                 Category = publishInput.Category
             };
 
-            var queue = _nebulaContext.GetDelayedJobQueue<OutgoingQueueStep>(QueueType.Delayed);
-            queue.Enqueue(step, DateTime.UtcNow, _jobId).GetAwaiter().GetResult();
+            foreach (var jobId in jobIds)
+                queue.Enqueue(step, DateTime.UtcNow, jobId).GetAwaiter().GetResult();
         }
     }
 }
