@@ -6,6 +6,7 @@ namespace Wormhole.Job
         {
             public object Payload { get; set; }
             public string Category { get; set; }
+            public string Tag { get; set; }
             public int FailCount { get; set; }
     }
 }

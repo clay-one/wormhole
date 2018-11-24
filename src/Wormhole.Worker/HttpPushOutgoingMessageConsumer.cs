@@ -13,13 +13,13 @@ using Wormhole.Kafka;
 
 namespace Wormhole.Worker
 {
-    public class MessageConsumer : ConsumerBase
+    public class HttpPushOutgoingMessageConsumer : ConsumerBase
     {
         private readonly NebulaContext _nebulaContext;
         private readonly string _topicName;
         
 
-        public MessageConsumer(IKafkaConsumer<Null, string> consumer,  NebulaContext nebulaContext, ILoggerFactory logger, string topicName) : base(consumer, logger, ConsumerDiagnosticProvider.GetStat(typeof(MessageConsumer).FullName, topicName))
+        public HttpPushOutgoingMessageConsumer(IKafkaConsumer<Null, string> consumer,  NebulaContext nebulaContext, ILoggerFactory logger, string topicName) : base(consumer, logger, ConsumerDiagnosticProvider.GetStat(typeof(HttpPushOutgoingMessageConsumer).FullName, topicName))
         {
             _nebulaContext = nebulaContext;
             _topicName = topicName;

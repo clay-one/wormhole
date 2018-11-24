@@ -37,6 +37,7 @@ namespace Wormhole.Api
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
             services.AddScoped<ITenantLogic, TenantLogic>();
             services.AddScoped<ITenantDa, TenantDa>();
+            services.AddScoped<IMessageLogDa, MessageLogDa>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
             ConfigureAppSettingObjects(services);
         }

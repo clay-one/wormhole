@@ -202,8 +202,8 @@ namespace Wormhole.Worker
                 .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
-                .AddTransient<IConsumerBase, MessageConsumer>(sp =>
-                    new MessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
+                .AddTransient<IConsumerBase, HttpPushOutgoingMessageConsumer>(sp =>
+                    new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
                 .AddSingleton<IFinalizableJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
