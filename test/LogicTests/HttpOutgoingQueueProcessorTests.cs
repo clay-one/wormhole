@@ -7,6 +7,7 @@ using Nebula.Storage.Model;
 using Microsoft.Extensions.Logging;
 using Nebula.Queue.Implementation;
 using Newtonsoft.Json;
+using Wormhole.DataImplementation;
 using Wormhole.Job;
 using Xunit;
 
@@ -23,7 +24,8 @@ namespace Wormhole.Tests.LogicTests
         public HttpOutgoingQueueProcessorTests()
         {
             var mockLogger = new Mock<ILogger<HttpPushOutgoingQueueProcessor>>();
-            _processor = new HttpPushOutgoingQueueProcessor(mockLogger.Object);
+            var mockMessageDa = new Mock<IMessageLogDa>();
+            _processor = new HttpPushOutgoingQueueProcessor(mockLogger.Object, mockMessageDa.Object);
             _nebulaContext = new NebulaContext();
 
             _nebulaContext.RegisterJobQueue(typeof(MockDelayedQueue), QueueType.Delayed);

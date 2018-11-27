@@ -25,11 +25,18 @@ namespace Wormhole.Api.Controllers
         public async Task<IActionResult> Publish([FromBody] PublishInput input)
         {
             Logger.LogDebug($"PublishMessageController - Publish method called with this input: {input}");
+            if (input == null)
+                return BadRequest(new ApiValidationError("input", ErrorKeys.ParameterNull));
 
-            if (input?.Payload == null || string.IsNullOrWhiteSpace(input.Tenant) || string.IsNullOrWhiteSpace(input.Tenant))
-            {
-                return BadRequest(new { Message = ErrorKeys.ParameterNull});
-            }
+            if (input.Payload == null)
+                return BadRequest(new ApiValidationError (nameof(PublishInput.Payload), ErrorKeys.ParameterNull));
+
+            if (string.IsNullOrWhiteSpace(input.Category))
+                return BadRequest(new ApiValidationError(nameof(PublishInput.Category), ErrorKeys.ParameterNull));
+
+
+            if (input.Tags == null || input.Tags.Count < 1)
+                return BadRequest(new ApiValidationError(nameof(PublishInput.Tags), ErrorKeys.ParameterNull));
 
             var result = await _publishMessageLogic.ProduceMessage(input);
 

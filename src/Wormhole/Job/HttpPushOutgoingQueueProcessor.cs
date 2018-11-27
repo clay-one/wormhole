@@ -77,25 +77,30 @@ namespace Wormhole.Job
         {
             var result = new JobProcessingResult();
             var publishResult = await SendMessage(item);
+            item.PublishOutputs.Add(new PublishMessageOutput
+            {
+                ErrorMessage = publishResult.Error,
+                HttpResultCode = publishResult.HttpResponseCode
+            });
             if (!publishResult.Success)
             {
-                result.ItemsFailed += 1;
                 item.FailCount += 1;
+                result.ItemsFailed = item.FailCount;
+                result.FailureMessages = new[]
+                {
+                    publishResult.Error
+                };
+                Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount}");
+
+                if (item.FailCount < _parameters.RetryCount)
+                {
+                    result.ItemsRequeued = item.FailCount - 1;
+                    await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval), _jobId);
+                    return result;
+                }
             }
 
             await InsertMessageLog(item, publishResult);
-
-            if (publishResult.Success)
-                return result;
-            
-            if (item.FailCount<_parameters.RetryCount)
-            {
-                result.ItemsRequeued += 1;
-                await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval), _jobId);
-            }
-
-            Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount}");
-
             return result;
         }
 
@@ -104,10 +109,10 @@ namespace Wormhole.Job
             var messageLog = new MessageLog()
             {
                 Category = item.Category,
+                Tag = item.Tag,
                 CreatedOn = DateTime.Now,
                 Payload = item.Payload,
-                HttpResultCode = publishResult.HttpResponseCode.ToString(),
-                ErrorMessage = publishResult.Error,
+                PublishMessageOutputs = item.PublishOutputs,
                 FailCount = item.FailCount
             };
             await MessageLogDa.AddAsync(messageLog);
@@ -121,12 +126,13 @@ namespace Wormhole.Job
                 return new SendMessageOutput
                 {
                     Success = true,
-                    HttpResponseCode = response.StatusCode.ToString()
+                    HttpResponseCode = response.StatusCode
                 };
 
             return new SendMessageOutput
             {
                 Success = false,
+                HttpResponseCode = response.StatusCode,
                 Error = response.ReasonPhrase
             };
         }

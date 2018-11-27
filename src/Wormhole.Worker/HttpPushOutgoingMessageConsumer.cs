@@ -38,9 +38,14 @@ namespace Wormhole.Worker
         {
             Logger.LogDebug(message.Value);
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
+            if (publishInput.Tags == null || publishInput.Tags.Count <1)
+                return;
 
-            var jobIds = NebulaWorker.GetJobIds(publishInput.Tenant, publishInput.Category, publishInput.Tags);
-            if (jobIds == null || jobIds.Count < 1)
+            if (string.IsNullOrWhiteSpace(publishInput.Category))
+                return;
+
+            var jobIdTagPairs = NebulaWorker.GetJobIdTagPairs(publishInput.Tenant, publishInput.Category, publishInput.Tags);
+            if (jobIdTagPairs == null)
                 return;
 
             var queue = _nebulaContext.GetDelayedJobQueue<HttpPushOutgoingQueueStep>(QueueType.Delayed);
@@ -50,8 +55,11 @@ namespace Wormhole.Worker
                 Category = publishInput.Category
             };
 
-            foreach (var jobId in jobIds)
-                queue.Enqueue(step, DateTime.UtcNow, jobId).GetAwaiter().GetResult();
+            foreach (var pair in jobIdTagPairs)
+            {
+                step.Tag = pair.Value;
+                queue.Enqueue(step, DateTime.UtcNow, pair.Key).GetAwaiter().GetResult();
+            }
         }
     }
 }
