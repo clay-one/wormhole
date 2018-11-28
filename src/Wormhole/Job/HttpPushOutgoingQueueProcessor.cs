@@ -52,9 +52,8 @@ namespace Wormhole.Job
             if (nebulaContext == null)
                 throw new ArgumentNullException(nameof(nebulaContext), ErrorKeys.ParameterNull);
 
-            _jobQueue = nebulaContext.GetDelayedJobQueue<HttpPushOutgoingQueueStep>(QueueType.Delayed);
             _jobId = jobData.JobId;
-
+            _jobQueue = nebulaContext.JobStepSourceBuilder.BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(_jobId);
             var parametersString = jobData.Configuration?.Parameters;
             if (string.IsNullOrWhiteSpace(parametersString))
                 throw new ArgumentNullException(nameof(jobData.Configuration.Parameters), ErrorKeys.ParameterNull);
@@ -95,7 +94,7 @@ namespace Wormhole.Job
                 if (item.FailCount < _parameters.RetryCount)
                 {
                     result.ItemsRequeued = item.FailCount - 1;
-                    await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval), _jobId);
+                    await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval));
                     return result;
                 }
             }

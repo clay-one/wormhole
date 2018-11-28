@@ -48,7 +48,6 @@ namespace Wormhole.Worker
             if (jobIdTagPairs == null)
                 return;
 
-            var queue = _nebulaContext.GetDelayedJobQueue<HttpPushOutgoingQueueStep>(QueueType.Delayed);
             var step = new HttpPushOutgoingQueueStep
             {
                 Payload = publishInput.Payload.ToString(),
@@ -58,7 +57,9 @@ namespace Wormhole.Worker
             foreach (var pair in jobIdTagPairs)
             {
                 step.Tag = pair.Value;
-                queue.Enqueue(step, DateTime.UtcNow, pair.Key).GetAwaiter().GetResult();
+                var queue =
+                    _nebulaContext.JobStepSourceBuilder.BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(pair.Key);
+                queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
             }
         }
     }
