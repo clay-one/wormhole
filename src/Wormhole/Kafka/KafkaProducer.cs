@@ -11,9 +11,7 @@ namespace Wormhole.Kafka
 {
     public class KafkaProducer : IKafkaProducer
     {
-        private readonly IDeliveryHandler<Null,string> _deliverHandler;
-        private readonly Producer _producer;
-        private readonly ISerializingProducer<Null, string> _serializingProducer;
+        private readonly Producer<Null, string> _producer;
         private readonly KafkaConfig _config;
         
 
@@ -24,12 +22,10 @@ namespace Wormhole.Kafka
             var config = new Dictionary<string, object>
             {
                 {"bootstrap.servers", _config.ServerAddress},
-                {"delivery.report.only.error", true}
+                {"delivery.report.only.error", false}
             };
          
-            _producer = new Producer(config);
-            _serializingProducer =
-                _producer.GetSerializingProducer(new NullSerializer(), new StringSerializer(Encoding.UTF8));
+            _producer = new Producer<Null, string>(config, null, new StringSerializer(Encoding.UTF8));
         }
 
         public void Produce(PublishInput message)
@@ -42,7 +38,7 @@ namespace Wormhole.Kafka
         public async Task ProduceAsync(PublishInput message)
         {
             var serializedObject = JsonConvert.SerializeObject(message, Formatting.None);
-            await _serializingProducer.ProduceAsync(message.Tenant, null, serializedObject);
+            await _producer.ProduceAsync(message.Tenant, null, serializedObject);
         }
 
         public int Flush()
