@@ -9,37 +9,41 @@ namespace Wormhole.Tests.LogicTests
 {
     public class MockDelayedQueue : IDelayedJobQueue<HttpPushOutgoingQueueStep>
     {
-        public Task EnsureJobSourceExists(string jobId = null)
+        public void Initialize(string jobId = null)
+        {
+        }
+
+        public Task EnsureJobSourceExists()
         {
             return Task.CompletedTask;
         }
 
-        public Task<bool> Any(string jobId = null)
+        public Task<bool> Any()
         {
             return Task.FromResult(false);
         }
 
-        public Task Purge(string jobId = null)
+        public Task Purge()
         {
             return Task.CompletedTask;
         }
 
-        public Task<HttpPushOutgoingQueueStep> GetNext(string jobId = null)
+        public Task<HttpPushOutgoingQueueStep> GetNext()
         {
             return Task.FromResult(new HttpPushOutgoingQueueStep());
         }
 
-        public Task<IEnumerable<HttpPushOutgoingQueueStep>> GetNextBatch(int maxBatchSize, string jobId = null)
+        public Task<IEnumerable<HttpPushOutgoingQueueStep>> GetNextBatch(int maxBatchSize)
         {
             return Task.FromResult(new List<HttpPushOutgoingQueueStep>().AsEnumerable());
         }
 
-        public Task EnqueueBatch(IEnumerable<Tuple<HttpPushOutgoingQueueStep, DateTime>> items, string jobId = null)
+        public Task EnqueueBatch(IEnumerable<Tuple<HttpPushOutgoingQueueStep, DateTime>> items)
         {
             return Task.CompletedTask;
         }
 
-        public Task EnqueueBatch(IEnumerable<Tuple<HttpPushOutgoingQueueStep, TimeSpan>> items, string jobId = null)
+        public Task EnqueueBatch(IEnumerable<Tuple<HttpPushOutgoingQueueStep, TimeSpan>> items)
         {
             return Task.CompletedTask;
         }

@@ -59,17 +59,15 @@ namespace Wormhole.Worker
             StartConsuming(topics);
         }
 
-        public static IList<string> GetJobIds(string tenant, string category, IList<string> tags)
-        {
-            if (tags == null || tags.Count < 1)
-                return
-                    OutputChannels.Where(o => o.FilterCriteria.Category == category && o.TenantId == tenant)
-                        .Select(o => o.JobId).ToList();
-
-            return tags.Select(tag => OutputChannels.FirstOrDefault(o =>
-                        o.FilterCriteria.Tag == tag && o.FilterCriteria.Category == category && o.TenantId == tenant)
-                    ?.JobId)
-                .ToList();
+        public static IEnumerable<KeyValuePair<string, string>> GetJobIdTagPairs(string tenant, string category, IList<string> tags)
+        {            
+            var list = new List<KeyValuePair<string, string>>();
+            foreach (var tag in tags)
+            {
+                list.Add(OutputChannels.Where(o => o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
+                    .Select(o => new KeyValuePair<string, string>(o.JobId, o.FilterCriteria.Tag)).FirstOrDefault());
+            }
+            return list;
         }
 
         private static async Task CreateJobs()
@@ -92,7 +90,7 @@ namespace Wormhole.Worker
                 var channelSpecification = outputChannel.TypeSpecification as HttpPushOutputChannelSpecification;
                 if (string.IsNullOrWhiteSpace(outputChannel.JobId))
                 {
-                    parameters.TargetUrl = channelSpecification.TargetUrl;
+                    parameters.TargetUrl = channelSpecification?.TargetUrl;
 
                     // todo: static job might be a better choice
                     outputChannel.JobId = await NebulaContext.GetJobManager()
@@ -198,12 +196,13 @@ namespace Wormhole.Worker
                 .AddLogging()
                 .AddSingleton<ITenantDa, TenantDa>()
                 .AddSingleton<IOutputChannelDa, OutputChannelDa>()
+                .AddSingleton<IMessageLogDa, MessageLogDa>()
                 .AddSingleton(NebulaContext)
                 .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
-                .AddTransient<IConsumerBase, MessageConsumer>(sp =>
-                    new MessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
+                .AddTransient<IConsumerBase, HttpPushOutgoingMessageConsumer>(sp =>
+                    new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
                 .AddSingleton<IFinalizableJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()

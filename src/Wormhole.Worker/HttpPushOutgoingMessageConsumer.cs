@@ -13,13 +13,13 @@ using Wormhole.Kafka;
 
 namespace Wormhole.Worker
 {
-    public class MessageConsumer : ConsumerBase
+    public class HttpPushOutgoingMessageConsumer : ConsumerBase
     {
         private readonly NebulaContext _nebulaContext;
         private readonly string _topicName;
         
 
-        public MessageConsumer(IKafkaConsumer<Null, string> consumer,  NebulaContext nebulaContext, ILoggerFactory logger, string topicName) : base(consumer, logger, ConsumerDiagnosticProvider.GetStat(typeof(MessageConsumer).FullName, topicName))
+        public HttpPushOutgoingMessageConsumer(IKafkaConsumer<Null, string> consumer,  NebulaContext nebulaContext, ILoggerFactory logger, string topicName) : base(consumer, logger, ConsumerDiagnosticProvider.GetStat(typeof(HttpPushOutgoingMessageConsumer).FullName, topicName))
         {
             _nebulaContext = nebulaContext;
             _topicName = topicName;
@@ -38,20 +38,29 @@ namespace Wormhole.Worker
         {
             Logger.LogDebug(message.Value);
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
-
-            var jobIds = NebulaWorker.GetJobIds(publishInput.Tenant, publishInput.Category, publishInput.Tags);
-            if (jobIds == null || jobIds.Count < 1)
+            if (publishInput.Tags == null || publishInput.Tags.Count <1)
                 return;
 
-            var queue = _nebulaContext.GetDelayedJobQueue<HttpPushOutgoingQueueStep>(QueueType.Delayed);
+            if (string.IsNullOrWhiteSpace(publishInput.Category))
+                return;
+
+            var jobIdTagPairs = NebulaWorker.GetJobIdTagPairs(publishInput.Tenant, publishInput.Category, publishInput.Tags);
+            if (jobIdTagPairs == null)
+                return;
+
             var step = new HttpPushOutgoingQueueStep
             {
                 Payload = publishInput.Payload.ToString(),
                 Category = publishInput.Category
             };
 
-            foreach (var jobId in jobIds)
-                queue.Enqueue(step, DateTime.UtcNow, jobId).GetAwaiter().GetResult();
+            foreach (var pair in jobIdTagPairs)
+            {
+                step.Tag = pair.Value;
+                var queue =
+                    _nebulaContext.JobStepSourceBuilder.BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(pair.Key);
+                queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
+            }
         }
     }
 }
