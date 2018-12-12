@@ -17,7 +17,7 @@ using Wormhole.DTO;
 
 namespace Wormhole.Job
 {
-    public class HttpPushOutgoingQueueProcessor : IFinalizableJobProcessor<HttpPushOutgoingQueueStep>
+    public class HttpPushOutgoingQueueProcessor : IJobProcessor<HttpPushOutgoingQueueStep>
     {
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
@@ -32,10 +32,7 @@ namespace Wormhole.Job
         {
             Logger = logger;
             MessageLogDa = messageLogDa;
-            _httpClient = new HttpClient
-            {
-                Timeout = TimeSpan.FromSeconds(10)
-            };
+            _httpClient = new HttpClient();
         }
 
         public Task<long> GetTargetQueueLength()
@@ -89,7 +86,7 @@ namespace Wormhole.Job
                 {
                     publishResult.Error
                 };
-                Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount}");
+                Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
 
                 if (item.FailCount < _parameters.RetryCount)
                 {
@@ -120,20 +117,32 @@ namespace Wormhole.Job
         public async Task<SendMessageOutput> SendMessage(HttpPushOutgoingQueueStep input)
         {
             var httpContent = CreateContent(input.Payload);
-            var response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
-            if (response.IsSuccessStatusCode)
+            var response = new HttpResponseMessage();
+            try
+            {
+                response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
+                if (response.IsSuccessStatusCode)
+                    return new SendMessageOutput
+                    {
+                        Success = true,
+                        HttpResponseCode = response.StatusCode
+                    };
+
                 return new SendMessageOutput
                 {
-                    Success = true,
-                    HttpResponseCode = response.StatusCode
+                    Success = false,
+                    HttpResponseCode = response.StatusCode,
+                    Error = response.ReasonPhrase
                 };
-
-            return new SendMessageOutput
+            }
+            catch (Exception e)
             {
-                Success = false,
-                HttpResponseCode = response.StatusCode,
-                Error = response.ReasonPhrase
-            };
+                return new SendMessageOutput
+                {
+                    Success = false,
+                    Error = e.Message
+                };
+            }
         }
 
         private static HttpContent CreateContent<T>(T body, Dictionary<string, string> headers = null)

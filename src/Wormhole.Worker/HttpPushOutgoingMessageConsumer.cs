@@ -13,7 +13,7 @@ using Wormhole.Kafka;
 
 namespace Wormhole.Worker
 {
-    public class HttpPushOutgoingMessageConsumer : ConsumerBase
+    public class HttpPushOutgoingMessageConsumer : ConsumerBase, IDisposable
     {
         private readonly NebulaContext _nebulaContext;
         private readonly string _topicName;
@@ -36,7 +36,6 @@ namespace Wormhole.Worker
 
         private void OnMessageRecived(object sender, Message<Null, string> message)
         {
-            Logger.LogDebug(message.Value);
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
             if (publishInput.Tags == null || publishInput.Tags.Count <1)
                 return;
@@ -51,7 +50,8 @@ namespace Wormhole.Worker
             var step = new HttpPushOutgoingQueueStep
             {
                 Payload = publishInput.Payload.ToString(),
-                Category = publishInput.Category
+                Category = publishInput.Category,
+                StepId = Guid.NewGuid().ToString()
             };
 
             foreach (var pair in jobIdTagPairs)
@@ -59,6 +59,7 @@ namespace Wormhole.Worker
                 step.Tag = pair.Value;
                 var queue =
                     _nebulaContext.JobStepSourceBuilder.BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(pair.Key);
+                Logger.LogInformation($"enquing message : {message.Value} ");
                 queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
             }
         }

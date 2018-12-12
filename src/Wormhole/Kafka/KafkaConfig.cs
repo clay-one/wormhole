@@ -8,10 +8,12 @@
         public const string StatisticsIntervalMsKey = "statistics.interval.ms";
         public const string EnableAutoCommitKey = "enable.auto.commit";
         public const string DefaultTopicConfigKey = "default.topic.config";
+        public const string ConsumerGroupIdKey = "group.id";
         public string BootstrapServers { get; set; }
         public string ServerAddress { get; set; }
         public string ConsumerAutoCommitIntervalMs { get; set; }
         public string StatisticsIntervalMs { get; set; }
         public string EnableAutoCommit { get; set; }
+        public string ConsumerGroupId { get; set; }
     }
 }

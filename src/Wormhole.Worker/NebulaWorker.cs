@@ -180,7 +180,7 @@ namespace Wormhole.Worker
         {
             ServiceProvider
                 .GetService<ILoggerFactory>()
-                .AddNLog(new NLogProviderOptions {CaptureMessageTemplates = true, CaptureMessageProperties = true});
+                .AddNLog();
             LogManager.LoadConfiguration("nlog.config");
 
 
@@ -205,7 +205,7 @@ namespace Wormhole.Worker
                     new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
-                .AddSingleton<IFinalizableJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
+                .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
                 .BuildServiceProvider();
         }
 
@@ -219,7 +219,7 @@ namespace Wormhole.Worker
                 AppConfiguration.GetConnectionString("nebula:redisConnectionString");
 
             var httpPushdelayedQueueProcessor =
-                ServiceProvider.GetService<IFinalizableJobProcessor<HttpPushOutgoingQueueStep>>();
+                ServiceProvider.GetService<IJobProcessor<HttpPushOutgoingQueueStep>>();
             NebulaContext.RegisterJobProcessor(httpPushdelayedQueueProcessor, typeof(HttpPushOutgoingQueueStep));
         }
 

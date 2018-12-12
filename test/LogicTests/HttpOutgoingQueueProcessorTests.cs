@@ -17,7 +17,7 @@ namespace Wormhole.Tests.LogicTests
     {
         private const string TenantId = "test_tenant";
         private const int Score = 100;
-        private readonly IFinalizableJobProcessor<HttpPushOutgoingQueueStep> _processor;
+        private readonly IJobProcessor<HttpPushOutgoingQueueStep> _processor;
         private readonly NebulaContext _nebulaContext;
         private readonly JobConfigurationData _jobConfiguration;
         private readonly HttpPushOutgoingQueueParameters _parameters;
