@@ -48,7 +48,7 @@ namespace Wormhole.Worker
 
         public static void Main(string[] args)
         {
-            ConfigureLogging();
+            AddLogger();
 
             ConfigureNebula();
             AppSettingsProvider.MongoConnectionString =
@@ -172,12 +172,8 @@ namespace Wormhole.Worker
             }
         }
 
-        private static void ConfigureLogging()
+        private static void AddLogger()
         {
-            ServiceProvider
-                .GetService<ILoggerFactory>()
-                .AddNLog();
-            LogManager.LoadConfiguration("nlog.config");
             Logger = ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<NebulaWorker>();
             Logger.LogDebug("Starting application");
@@ -187,8 +183,16 @@ namespace Wormhole.Worker
         private static ServiceProvider ConfigureServices()
         {
             return new ServiceCollection()
-                .AddLogging()
-                .AddSingleton<ITenantDa, TenantDa>()
+                .AddLogging(builder =>
+                    {
+                        builder.AddNLog(new NLogProviderOptions
+                        {
+                            CaptureMessageTemplates = true,
+                            CaptureMessageProperties = true
+                        });
+                        builder.AddConfiguration(AppConfiguration.GetSection("Logging"));
+                    })
+                    .AddSingleton<ITenantDa, TenantDa>()
                 .AddSingleton<IOutputChannelDa, OutputChannelDa>()
                 .AddSingleton<IMessageLogDa, MessageLogDa>()
                 .AddSingleton(NebulaContext)
