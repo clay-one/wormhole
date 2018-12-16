@@ -40,7 +40,7 @@ namespace Wormhole.Worker
             new ConcurrentDictionary<string, IConsumerBase>();
 
         private static readonly IList<OutputChannel> OutputChannels = new List<OutputChannel>();
-        private static IConfigurationSection RetryConfig => AppConfiguration.GetSection("RetryConfig");
+        private static IConfigurationSection RetryConfig => AppConfiguration.GetSection("RetryConfiguration");
 
         private static ILogger<NebulaWorker> Logger { get; set; }
 
@@ -79,11 +79,7 @@ namespace Wormhole.Worker
 
         private static async Task CreateHttpPushOutgingQueueJobsAsync(List<OutputChannel> outputChannels)
         {
-            var parameters = new HttpPushOutgoingQueueParameters
-            {
-                RetryCount = int.Parse(RetryConfig.GetChildren().FirstOrDefault(a => a.Key == "Count")?.Value),
-                RetryInterval = int.Parse(RetryConfig.GetChildren().FirstOrDefault(a => a.Key == "Interval")?.Value)
-            };
+            var parameters = new HttpPushOutgoingQueueParameters();
 
             foreach (var outputChannel in outputChannels)
             {
@@ -182,8 +178,6 @@ namespace Wormhole.Worker
                 .GetService<ILoggerFactory>()
                 .AddNLog();
             LogManager.LoadConfiguration("nlog.config");
-
-
             Logger = ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<NebulaWorker>();
             Logger.LogDebug("Starting application");
@@ -205,6 +199,7 @@ namespace Wormhole.Worker
                     new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
+                .Configure<RetryConfiguration>(AppConfiguration.GetSection(Constants.RetryConfiguration))
                 .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
                 .BuildServiceProvider();
         }

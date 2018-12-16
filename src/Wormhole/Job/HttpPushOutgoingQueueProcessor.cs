@@ -5,8 +5,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nebula;
-using Nebula.Controllers.Dto;
 using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
@@ -19,21 +19,23 @@ namespace Wormhole.Job
 {
     public class HttpPushOutgoingQueueProcessor : IJobProcessor<HttpPushOutgoingQueueStep>
     {
+        private readonly HttpClient _httpClient;
+        private readonly RetryConfiguration _retryConfig;
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
         private HttpPushOutgoingQueueParameters _parameters;
-
-        private ILogger<HttpPushOutgoingQueueProcessor> Logger { get; set; }
-        private IMessageLogDa MessageLogDa { get; set; }
-        private readonly HttpClient _httpClient;
-
-
-        public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger, IMessageLogDa messageLogDa)
+        
+        public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger,
+            IMessageLogDa messageLogDa, IOptions<RetryConfiguration> options)
         {
             Logger = logger;
             MessageLogDa = messageLogDa;
             _httpClient = new HttpClient();
+            _retryConfig = options.Value;
         }
+
+        private ILogger<HttpPushOutgoingQueueProcessor> Logger { get; }
+        private IMessageLogDa MessageLogDa { get; }
 
         public Task<long> GetTargetQueueLength()
         {
@@ -58,57 +60,54 @@ namespace Wormhole.Job
             _parameters = JsonConvert.DeserializeObject<HttpPushOutgoingQueueParameters>(parametersString);
         }
 
-        public Task JobCompleted()
-        {
-            return Task.CompletedTask;
-        }
-
         public async Task<JobProcessingResult> Process(List<HttpPushOutgoingQueueStep> items)
         {
             return JobProcessingResult.Combine(
                 await Task.WhenAll(items.Select(ProcessOne).ToArray()));
         }
-
+        
         private async Task<JobProcessingResult> ProcessOne(HttpPushOutgoingQueueStep item)
         {
             var result = new JobProcessingResult();
             var publishResult = await SendMessage(item);
-            item.PublishOutputs.Add(new PublishMessageOutput
+            if (publishResult.Success)
             {
-                ErrorMessage = publishResult.Error,
-                HttpResultCode = publishResult.HttpResponseCode
-            });
-            if (!publishResult.Success)
-            {
-                item.FailCount += 1;
-                result.ItemsFailed = item.FailCount;
-                result.FailureMessages = new[]
-                {
-                    publishResult.Error
-                };
-                Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
-
-                if (item.FailCount < _parameters.RetryCount)
-                {
-                    result.ItemsRequeued = item.FailCount - 1;
-                    await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval));
-                    return result;
-                }
+                await InsertMessageLog(item, publishResult);
+                return result;
             }
 
+            item.FailCount += 1;
             await InsertMessageLog(item, publishResult);
+            result.ItemsFailed = item.FailCount;
+            result.FailureMessages = new[]
+            {
+                publishResult.Error
+            };
+            Logger.LogInformation(
+                $"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
+            if (item.FailCount > _retryConfig.Count)
+                return result;
+
+            result.ItemsRequeued = item.FailCount;
+            await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_retryConfig.Interval));
+
             return result;
         }
 
         private async Task InsertMessageLog(HttpPushOutgoingQueueStep item, SendMessageOutput publishResult)
         {
-            var messageLog = new MessageLog()
+            var messageLog = new OutgoingMessageLog
             {
+                JobStepIdentifier = item.StepId,
                 Category = item.Category,
                 Tag = item.Tag,
                 CreatedOn = DateTime.Now,
                 Payload = item.Payload,
-                PublishMessageOutputs = item.PublishOutputs,
+                PublishOutput = new PublishMessageOutput
+                {
+                    ErrorMessage = publishResult.Error,
+                    HttpResultCode = publishResult.HttpResponseCode
+                },
                 FailCount = item.FailCount
             };
             await MessageLogDa.AddAsync(messageLog);
@@ -157,5 +156,11 @@ namespace Wormhole.Job
 
             return content;
         }
+    }
+
+    public class RetryConfiguration
+    {
+        public int Count { get; set; }
+        public double Interval { get; set; }
     }
 }

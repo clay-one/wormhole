@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Nebula.Queue;
 using Wormhole.Job;
 
-namespace Wormhole.Tests.LogicTests
+namespace Wormhole.Tests
 {
     public class MockDelayedQueue : IDelayedJobQueue<HttpPushOutgoingQueueStep>
     {
