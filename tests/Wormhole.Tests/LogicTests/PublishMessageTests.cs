@@ -7,7 +7,6 @@ namespace Wormhole.Tests.LogicTests
         [Fact]
         public void TestMethod1()
         {
-            
         }
     }
 }

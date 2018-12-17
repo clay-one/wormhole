@@ -19,9 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Wormhole.Api\Wormhole.Api.csproj" />
-    <ProjectReference Include="..\src\Wormhole\Wormhole.csproj" />
-
+    <ProjectReference Include="..\..\src\Wormhole\Wormhole.csproj" />
   </ItemGroup>
 
  
