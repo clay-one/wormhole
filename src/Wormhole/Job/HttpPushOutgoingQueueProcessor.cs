@@ -24,7 +24,7 @@ namespace Wormhole.Job
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
         private HttpPushOutgoingQueueParameters _parameters;
-        
+
         public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger,
             IMessageLogDa messageLogDa, IOptions<RetryConfiguration> options)
         {
@@ -47,7 +47,6 @@ namespace Wormhole.Job
             if (jobData == null)
                 throw new ArgumentNullException(nameof(jobData), ErrorKeys.ParameterNull);
 
-
             if (nebulaContext == null)
                 throw new ArgumentNullException(nameof(nebulaContext), ErrorKeys.ParameterNull);
 
@@ -65,7 +64,7 @@ namespace Wormhole.Job
             return JobProcessingResult.Combine(
                 await Task.WhenAll(items.Select(ProcessOne).ToArray()));
         }
-        
+
         private async Task<JobProcessingResult> ProcessOne(HttpPushOutgoingQueueStep item)
         {
             var result = new JobProcessingResult();
@@ -156,11 +155,5 @@ namespace Wormhole.Job
 
             return content;
         }
-    }
-
-    public class RetryConfiguration
-    {
-        public int Count { get; set; }
-        public double Interval { get; set; }
     }
 }
