@@ -14,13 +14,13 @@ namespace Wormhole.Api.Controllers
     {
         private readonly ITenantLogic _tenantLogic;
 
-        private ILogger<TenantController> Logger { get; set; } 
-
         public TenantController(ITenantLogic tenantLogic, ILogger<TenantController> logger)
         {
             _tenantLogic = tenantLogic;
             Logger = logger;
         }
+
+        private ILogger<TenantController> Logger { get; }
 
         [HttpPost("")]
         public async Task<IActionResult> AddTenant(AddTenantRequest request)
@@ -29,7 +29,7 @@ namespace Wormhole.Api.Controllers
 
             if (string.IsNullOrWhiteSpace(request.Identifier) || string.IsNullOrWhiteSpace(request.Name))
             {
-                return BadRequest(new { Message = ErrorKeys.ParameterNull });
+                return BadRequest(new {Message = ErrorKeys.ParameterNull});
             }
 
             var input = Mapping.AutoMapper.Mapper.Map<Tenant>(request);
@@ -37,7 +37,7 @@ namespace Wormhole.Api.Controllers
 
             if (result?.Error != null)
             {
-                return BadRequest(new { Message = result.Error });               
+                return BadRequest(new {Message = result.Error});
             }
 
             return Ok(ApiValidatedResult<AddTenantResponse>.Ok(
@@ -55,6 +55,5 @@ namespace Wormhole.Api.Controllers
         {
             return null;
         }
-
     }
 }

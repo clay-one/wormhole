@@ -15,7 +15,6 @@ using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
-using NLog;
 using NLog.Extensions.Logging;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
@@ -40,7 +39,7 @@ namespace Wormhole.Worker
             new ConcurrentDictionary<string, IConsumerBase>();
 
         private static readonly IList<OutputChannel> OutputChannels = new List<OutputChannel>();
-        private static IConfigurationSection RetryConfig => AppConfiguration.GetSection("RetryConfiguration");
+        private static IConfigurationSection RetryConfig { get; } = AppConfiguration.GetSection("RetryConfiguration");
 
         private static ILogger<NebulaWorker> Logger { get; set; }
 
@@ -59,25 +58,28 @@ namespace Wormhole.Worker
             StartConsuming(topics);
         }
 
-        public static IEnumerable<KeyValuePair<string, string>> GetJobIdTagPairs(string tenant, string category, IList<string> tags)
-        {            
+        public static IEnumerable<KeyValuePair<string, string>> GetJobIdTagPairs(string tenant, string category,
+            IList<string> tags)
+        {
             var list = new List<KeyValuePair<string, string>>();
             foreach (var tag in tags)
             {
-                list.Add(OutputChannels.Where(o => o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
+                list.Add(OutputChannels.Where(o =>
+                        o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
                     .Select(o => new KeyValuePair<string, string>(o.JobId, o.FilterCriteria.Tag)).FirstOrDefault());
             }
+
             return list;
         }
 
         private static async Task CreateJobs()
         {
             OutputChannels.AddAll(await GetOutputChannels());
-            await CreateHttpPushOutgingQueueJobsAsync(OutputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
+            await CreateHttpPushOutgoingQueueJobsAsync(OutputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
                 .ToList());
         }
 
-        private static async Task CreateHttpPushOutgingQueueJobsAsync(List<OutputChannel> outputChannels)
+        private static async Task CreateHttpPushOutgoingQueueJobsAsync(List<OutputChannel> outputChannels)
         {
             var parameters = new HttpPushOutgoingQueueParameters();
 
@@ -124,11 +126,12 @@ namespace Wormhole.Worker
             return await outputChannelDa.FindOutputChannels();
         }
 
-
         private static void StartConsuming(List<string> topics)
         {
             if (topics == null || topics.Count < 1)
+            {
                 throw new Exception("There is no topic for message consumption");
+            }
 
             foreach (var topic in topics)
             {
@@ -141,13 +144,16 @@ namespace Wormhole.Worker
         {
             ConsumerTopicName = topic;
             var consumer = Consumers.FirstOrDefault(c => c.Key == ConsumerTopicName).Value;
-            if (consumer != null) return consumer;
+            if (consumer != null)
+            {
+                return consumer;
+            }
+
             consumer = ServiceProvider.GetService<IConsumerBase>();
             Consumers.Add(new KeyValuePair<string, IConsumerBase>(ConsumerTopicName, consumer));
 
             return consumer;
         }
-
 
         private static void StartNebulaService()
         {
@@ -179,20 +185,19 @@ namespace Wormhole.Worker
             Logger.LogDebug("Starting application");
         }
 
-
         private static ServiceProvider ConfigureServices()
         {
             return new ServiceCollection()
                 .AddLogging(builder =>
+                {
+                    builder.AddNLog(new NLogProviderOptions
                     {
-                        builder.AddNLog(new NLogProviderOptions
-                        {
-                            CaptureMessageTemplates = true,
-                            CaptureMessageProperties = true
-                        });
-                        builder.AddConfiguration(AppConfiguration.GetSection("Logging"));
-                    })
-                    .AddSingleton<ITenantDa, TenantDa>()
+                        CaptureMessageTemplates = true,
+                        CaptureMessageProperties = true
+                    });
+                    builder.AddConfiguration(AppConfiguration.GetSection("Logging"));
+                })
+                .AddSingleton<ITenantDa, TenantDa>()
                 .AddSingleton<IOutputChannelDa, OutputChannelDa>()
                 .AddSingleton<IMessageLogDa, MessageLogDa>()
                 .AddSingleton(NebulaContext)
@@ -200,7 +205,8 @@ namespace Wormhole.Worker
                 .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
                 .AddTransient<IConsumerBase, HttpPushOutgoingMessageConsumer>(sp =>
-                    new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(), sp.GetService<NebulaContext>(),
+                    new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(),
+                        sp.GetService<NebulaContext>(),
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
                 .Configure<RetryConfiguration>(AppConfiguration.GetSection(Constants.RetryConfiguration))
@@ -217,9 +223,9 @@ namespace Wormhole.Worker
             NebulaContext.RedisConnectionString =
                 AppConfiguration.GetConnectionString("nebula:redisConnectionString");
 
-            var httpPushdelayedQueueProcessor =
+            var httpPushDelayedQueueProcessor =
                 ServiceProvider.GetService<IJobProcessor<HttpPushOutgoingQueueStep>>();
-            NebulaContext.RegisterJobProcessor(httpPushdelayedQueueProcessor, typeof(HttpPushOutgoingQueueStep));
+            NebulaContext.RegisterJobProcessor(httpPushDelayedQueueProcessor, typeof(HttpPushOutgoingQueueStep));
         }
 
         private static IConfigurationRoot BuildConfiguration(string path, string environmentName = null)
@@ -229,7 +235,9 @@ namespace Wormhole.Worker
                 .AddJsonFile("appsettings.json", true, true);
 
             if (!string.IsNullOrWhiteSpace(environmentName))
+            {
                 builder = builder.AddJsonFile($"appsettings.{environmentName}.json", true);
+            }
 
             builder = builder.AddEnvironmentVariables();
 
