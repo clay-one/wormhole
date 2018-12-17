@@ -11,7 +11,7 @@ namespace Wormhole.Api.Configuration
             {
                 config.AddProfile(new InputChannelAddRequestProfile());
                 config.AddProfile(new InputChannelAddResponseProfile());
-                
+
                 config.AddProfile(new HttpPushOutputChannelAddRequestProfile());
                 config.AddProfile(new KafkaOutputChannelAddRequestProfile());
                 config.AddProfile(new HttpPushOutputChannelAddResponseProfile());

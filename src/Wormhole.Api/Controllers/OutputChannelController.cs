@@ -12,8 +12,6 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class OutputChannelController : ControllerBase
     {
-        private ILogger<OutputChannelController> Logger { get; set; }
-
         private readonly IOutputChannelDa _outputChannelDa;
 
         public OutputChannelController(IOutputChannelDa outputChannelDa, ILogger<OutputChannelController> logger)
@@ -22,10 +20,13 @@ namespace Wormhole.Api.Controllers
             Logger = logger;
         }
 
+        private ILogger<OutputChannelController> Logger { get; }
+
         [HttpPost("http-push")]
         public async Task<IActionResult> AddHttpPushOutputChannel(HttpPushOutputChannelAddRequest input)
         {
-            Logger.LogDebug($"OutputChannelController - AddHttpPushOutputChannel method called with this input: {input}");
+            Logger.LogDebug(
+                $"{nameof(OutputChannelController)} - {nameof(AddHttpPushOutputChannel)} method called with this input: {input}");
 
             var channel = Mapping.AutoMapper.Mapper.Map<OutputChannel>(input);
 
@@ -39,7 +40,7 @@ namespace Wormhole.Api.Controllers
         [HttpPost("kafka")]
         public async Task<IActionResult> AddKafkaOutputChannel(KafkaOutputChannelAddRequest input)
         {
-            Logger.LogDebug($"OutputChannelController - AddKafkaOutputChannel method called with this input: {input}");
+            Logger.LogDebug($"{nameof(OutputChannelController)} - {nameof(AddKafkaOutputChannel)} method called with this input: {input}");
 
             var channel = Mapping.AutoMapper.Mapper.Map<OutputChannel>(input);
 
