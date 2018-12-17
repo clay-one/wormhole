@@ -5,6 +5,6 @@ namespace Wormhole.DataImplementation
 {
     public interface IMessageLogDa
     {
-        Task AddAsync(MessageLog messageLog);
+        Task AddAsync(OutgoingMessageLog outgoingMessageLog);
     }
 }

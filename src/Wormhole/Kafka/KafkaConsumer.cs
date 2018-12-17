@@ -10,7 +10,7 @@ using ErrorCode = Confluent.Kafka.ErrorCode;
 
 namespace Wormhole.Kafka
 {
-    public class KafkaConsumer: IKafkaConsumer<Null, string>
+    public class KafkaConsumer: IKafkaConsumer<Null, string>, IDisposable
     {
         private readonly ILogger _logger;
         private Consumer<Null, string> _consumer;
@@ -91,6 +91,7 @@ namespace Wormhole.Kafka
                 _configuration.ConsumerAutoCommitIntervalMs));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.EnableAutoCommitKey, _configuration.EnableAutoCommit));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.StatisticsIntervalMsKey, _configuration.StatisticsIntervalMs));
+            config.Add(new KeyValuePair<string, object>(KafkaConfig.ConsumerGroupIdKey, _configuration.ConsumerGroupId));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.DefaultTopicConfigKey, new Dictionary<string, object>
             {
                 {"auto.offset.reset", "latest"}

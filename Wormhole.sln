@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.3
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole", "src\Wormhole\Wormhole.csproj", "{754D4CAB-B8D0-4327-9953-EB1256B71E59}"
 EndProject
@@ -16,8 +16,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Tests", "test\Wormhole.Tests.csproj", "{50B2D8B9-8B9A-4588-AF6D-D565260AED3E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Wormhole.Tests", "Wormhole.Tests", "{C0F92912-D646-49FF-9A47-56A70BCF7B82}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTestProject1", "XUnitTestProject1\XUnitTestProject1.csproj", "{2F4F2ABE-E7BA-40B7-BDB7-11471D044D55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,17 +47,12 @@ Global
 		{50B2D8B9-8B9A-4588-AF6D-D565260AED3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50B2D8B9-8B9A-4588-AF6D-D565260AED3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50B2D8B9-8B9A-4588-AF6D-D565260AED3E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F4F2ABE-E7BA-40B7-BDB7-11471D044D55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F4F2ABE-E7BA-40B7-BDB7-11471D044D55}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F4F2ABE-E7BA-40B7-BDB7-11471D044D55}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F4F2ABE-E7BA-40B7-BDB7-11471D044D55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{50B2D8B9-8B9A-4588-AF6D-D565260AED3E} = {C0F92912-D646-49FF-9A47-56A70BCF7B82}
-		{2F4F2ABE-E7BA-40B7-BDB7-11471D044D55} = {C0F92912-D646-49FF-9A47-56A70BCF7B82}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEA8EC68-F66A-428E-AE58-417D632F8496}

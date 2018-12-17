@@ -5,8 +5,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nebula;
-using Nebula.Controllers.Dto;
 using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
@@ -17,26 +17,25 @@ using Wormhole.DTO;
 
 namespace Wormhole.Job
 {
-    public class HttpPushOutgoingQueueProcessor : IFinalizableJobProcessor<HttpPushOutgoingQueueStep>
+    public class HttpPushOutgoingQueueProcessor : IJobProcessor<HttpPushOutgoingQueueStep>
     {
+        private readonly HttpClient _httpClient;
+        private readonly RetryConfiguration _retryConfig;
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
         private HttpPushOutgoingQueueParameters _parameters;
 
-        private ILogger<HttpPushOutgoingQueueProcessor> Logger { get; set; }
-        private IMessageLogDa MessageLogDa { get; set; }
-        private readonly HttpClient _httpClient;
-
-
-        public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger, IMessageLogDa messageLogDa)
+        public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger,
+            IMessageLogDa messageLogDa, IOptions<RetryConfiguration> options)
         {
             Logger = logger;
             MessageLogDa = messageLogDa;
-            _httpClient = new HttpClient
-            {
-                Timeout = TimeSpan.FromSeconds(10)
-            };
+            _httpClient = new HttpClient();
+            _retryConfig = options.Value;
         }
+
+        private ILogger<HttpPushOutgoingQueueProcessor> Logger { get; }
+        private IMessageLogDa MessageLogDa { get; }
 
         public Task<long> GetTargetQueueLength()
         {
@@ -47,7 +46,6 @@ namespace Wormhole.Job
         {
             if (jobData == null)
                 throw new ArgumentNullException(nameof(jobData), ErrorKeys.ParameterNull);
-
 
             if (nebulaContext == null)
                 throw new ArgumentNullException(nameof(nebulaContext), ErrorKeys.ParameterNull);
@@ -61,11 +59,6 @@ namespace Wormhole.Job
             _parameters = JsonConvert.DeserializeObject<HttpPushOutgoingQueueParameters>(parametersString);
         }
 
-        public Task JobCompleted()
-        {
-            return Task.CompletedTask;
-        }
-
         public async Task<JobProcessingResult> Process(List<HttpPushOutgoingQueueStep> items)
         {
             return JobProcessingResult.Combine(
@@ -76,42 +69,44 @@ namespace Wormhole.Job
         {
             var result = new JobProcessingResult();
             var publishResult = await SendMessage(item);
-            item.PublishOutputs.Add(new PublishMessageOutput
+            if (publishResult.Success)
             {
-                ErrorMessage = publishResult.Error,
-                HttpResultCode = publishResult.HttpResponseCode
-            });
-            if (!publishResult.Success)
-            {
-                item.FailCount += 1;
-                result.ItemsFailed = item.FailCount;
-                result.FailureMessages = new[]
-                {
-                    publishResult.Error
-                };
-                Logger.LogInformation($"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount}");
-
-                if (item.FailCount < _parameters.RetryCount)
-                {
-                    result.ItemsRequeued = item.FailCount - 1;
-                    await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_parameters.RetryInterval));
-                    return result;
-                }
+                await InsertMessageLog(item, publishResult);
+                return result;
             }
 
+            item.FailCount += 1;
             await InsertMessageLog(item, publishResult);
+            result.ItemsFailed = item.FailCount;
+            result.FailureMessages = new[]
+            {
+                publishResult.Error
+            };
+            Logger.LogInformation(
+                $"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
+            if (item.FailCount > _retryConfig.Count)
+                return result;
+
+            result.ItemsRequeued = item.FailCount;
+            await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_retryConfig.Interval));
+
             return result;
         }
 
         private async Task InsertMessageLog(HttpPushOutgoingQueueStep item, SendMessageOutput publishResult)
         {
-            var messageLog = new MessageLog()
+            var messageLog = new OutgoingMessageLog
             {
+                JobStepIdentifier = item.StepId,
                 Category = item.Category,
                 Tag = item.Tag,
                 CreatedOn = DateTime.Now,
                 Payload = item.Payload,
-                PublishMessageOutputs = item.PublishOutputs,
+                PublishOutput = new PublishMessageOutput
+                {
+                    ErrorMessage = publishResult.Error,
+                    HttpResultCode = publishResult.HttpResponseCode
+                },
                 FailCount = item.FailCount
             };
             await MessageLogDa.AddAsync(messageLog);
@@ -120,20 +115,32 @@ namespace Wormhole.Job
         public async Task<SendMessageOutput> SendMessage(HttpPushOutgoingQueueStep input)
         {
             var httpContent = CreateContent(input.Payload);
-            var response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
-            if (response.IsSuccessStatusCode)
+            var response = new HttpResponseMessage();
+            try
+            {
+                response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
+                if (response.IsSuccessStatusCode)
+                    return new SendMessageOutput
+                    {
+                        Success = true,
+                        HttpResponseCode = response.StatusCode
+                    };
+
                 return new SendMessageOutput
                 {
-                    Success = true,
-                    HttpResponseCode = response.StatusCode
+                    Success = false,
+                    HttpResponseCode = response.StatusCode,
+                    Error = response.ReasonPhrase
                 };
-
-            return new SendMessageOutput
+            }
+            catch (Exception e)
             {
-                Success = false,
-                HttpResponseCode = response.StatusCode,
-                Error = response.ReasonPhrase
-            };
+                return new SendMessageOutput
+                {
+                    Success = false,
+                    Error = e.Message
+                };
+            }
         }
 
         private static HttpContent CreateContent<T>(T body, Dictionary<string, string> headers = null)

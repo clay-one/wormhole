@@ -29,7 +29,7 @@ namespace Wormhole.Api
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public virtual void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddScoped<IOutputChannelDa, OutputChannelDa>();
@@ -42,7 +42,7 @@ namespace Wormhole.Api
             ConfigureAppSettingObjects(services);
         }
 
-        private void ConfigureMongoConfigurationObjects()
+        private static void ConfigureMongoConfigurationObjects()
         {
             var interfaceType = typeof(IMongoCollectionConfig);
             var types = AppDomain.CurrentDomain.GetAssemblies()
@@ -65,7 +65,7 @@ namespace Wormhole.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            ConfigureLogging(app,loggerFactory);
+            ConfigureLogging(app, loggerFactory);
             ConfigureTypeMappings();
             ConfigureMongoConfigurationObjects();
 
@@ -91,11 +91,7 @@ namespace Wormhole.Api
         {
             //add NLog to ASP.NET Core
             loggerFactory.AddNLog();
-
-            //add NLog.Web
-            app.AddNLogWeb();
         }
-
 
         private static void MapWebApi(IApplicationBuilder app)
         {
