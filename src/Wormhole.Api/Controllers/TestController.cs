@@ -7,6 +7,7 @@ namespace Wormhole.Api.Controllers
 {
     [Route("test")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class TestController : ControllerBase
     {
         private readonly IHostingEnvironment _hostingEnvironment;
