@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using HttpMock;
 using Moq;
 using Nebula;
 using Nebula.Queue;
@@ -50,45 +52,90 @@ namespace Wormhole.Tests.LogicTests
         
         
 
-        public class RetryalbeProcessorTests : HttpOutgoingQueueProcessorTests
+        public class ProcessorRetryTests : HttpOutgoingQueueProcessorTests
         {
-            public RetryalbeProcessorTests()
+            private readonly IHttpServer _stubHttp;
+            private readonly HttpPushOutgoingQueueStep _step;
+            private readonly JobData _jobData;
+            private readonly RetryConfiguration retryConfiguration = new RetryConfiguration {Count = 3, Interval = 1};
+            public ProcessorRetryTests()
             {
-                Options = Microsoft.Extensions.Options.Options.Create(new RetryConfiguration { Count = 3, Interval = 1 });
+                Options = Microsoft.Extensions.Options.Options.Create(retryConfiguration);
                 _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);
                 _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
-            }
-
-            [Fact]
-            public void Process_RetryWithWrongTargetUrl_Fail()
-            {
-                _parameters.TargetUrl += "/fake";
-
-                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
-
-                var step = new HttpPushOutgoingQueueStep
+                _stubHttp = HttpMockRepository.At("http://localhost:9191");
+                _parameters.TargetUrl = "http://localhost:9191/endpoint";
+                _step = new HttpPushOutgoingQueueStep
                 {
                     Category = "test_category",
                     FailCount = 0,
                     Payload = "test_message"
                 };
-                var jobData = new JobData()
+
+                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+
+
+                _jobData = new JobData()
                 {
                     JobId = "test_job_id",
                     Configuration = _jobConfiguration,
                     TenantId = TenantId
                 };
-                _processor.Initialize(jobData, _nebulaContext);
-                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+            }
+
+            [Fact]
+            public void Process_FailedMoreThanRetryCount_FailAndNoRetry()
+            {
+                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+                var failCount = retryConfiguration.Count;
+                _step.FailCount = failCount;
+                _stubHttp.Stub(x => x.Post("/endpoint"))
+                    .Return("")
+                    .WithStatus(HttpStatusCode.BadGateway);
+                _processor.Initialize(_jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
+                Assert.Equal(failCount+ 1 , result.ItemsFailed);
+                Assert.Equal(0 , result.ItemsRequeued);
+            }
+            
+            [Theory]
+            [InlineData(HttpStatusCode.NotFound)]
+            [InlineData(HttpStatusCode.Unauthorized)]
+            [InlineData(HttpStatusCode.BadRequest)]
+            public void Process_NoRetriableResults_FailAndNoRetry(HttpStatusCode responseCode)
+            {
+                _stubHttp.Stub(x => x.Post("/endpoint"))
+                    .Return("")
+                    .WithStatus(responseCode);
+
+                _processor.Initialize(_jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
+                Assert.Equal(0, result.ItemsRequeued);
+                Assert.Equal(1, result.ItemsFailed);
+            }
+
+            [Theory]
+            [InlineData(HttpStatusCode.BadGateway)]
+            [InlineData(HttpStatusCode.GatewayTimeout)]
+            [InlineData(HttpStatusCode.ServiceUnavailable)]
+            public void Process_RetriableResults_FailAndRetry(HttpStatusCode responseCode)
+            {
+                _stubHttp.Stub(x => x.Post("/endpoint"))
+                    .WithStatus(responseCode);
+
+                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+                _processor.Initialize(_jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
                 Assert.Equal(1, result.ItemsRequeued);
                 Assert.Equal(1, result.ItemsFailed);
             }
+
         }
 
-        public class UnretryableProcessorTests : HttpOutgoingQueueProcessorTests
+        public class ProcessorGeneralTests : HttpOutgoingQueueProcessorTests
         {
 
-            public UnretryableProcessorTests()
+            public ProcessorGeneralTests()
             {
                 Options = Microsoft.Extensions.Options.Options.Create(new RetryConfiguration { Count = 0, Interval = 0 });
                 _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);

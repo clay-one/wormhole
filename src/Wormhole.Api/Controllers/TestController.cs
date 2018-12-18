@@ -1,7 +1,6 @@
 ﻿using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Wormhole.Api.Model;
 
 namespace Wormhole.Api.Controllers
 {
@@ -17,7 +16,7 @@ namespace Wormhole.Api.Controllers
         }
 
         [HttpPost("incoming")]
-        public IActionResult InsertIncomingMessages([FromBody] PublishInput input)
+        public IActionResult InsertIncomingMessages([FromBody] object input)
         {
             if (!_hostingEnvironment.IsDevelopment())
             {
