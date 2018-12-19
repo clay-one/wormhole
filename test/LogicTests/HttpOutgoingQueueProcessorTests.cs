@@ -5,7 +5,7 @@ using Nebula;
 using Nebula.Queue;
 using Nebula.Storage.Model;
 using Microsoft.Extensions.Logging;
-using Nebula.Queue.Implementation;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
@@ -17,23 +17,22 @@ namespace Wormhole.Tests.LogicTests
     {
         private const string TenantId = "test_tenant";
         private const int Score = 100;
-        private readonly IFinalizableJobProcessor<HttpPushOutgoingQueueStep> _processor;
+        private Mock<ILogger<HttpPushOutgoingQueueProcessor>> MockLogger { get; set; }
+        private Mock<IMessageLogDa> MockMessageDa { get; set; }
+        private IOptions<RetryConfiguration> Options { get; set; }
+        private IJobProcessor<HttpPushOutgoingQueueStep> _processor;
         private readonly NebulaContext _nebulaContext;
         private readonly JobConfigurationData _jobConfiguration;
         private readonly HttpPushOutgoingQueueParameters _parameters;
         public HttpOutgoingQueueProcessorTests()
         {
-            var mockLogger = new Mock<ILogger<HttpPushOutgoingQueueProcessor>>();
-            var mockMessageDa = new Mock<IMessageLogDa>();
-            _processor = new HttpPushOutgoingQueueProcessor(mockLogger.Object, mockMessageDa.Object);
+            MockLogger = new Mock<ILogger<HttpPushOutgoingQueueProcessor>>();
+            MockMessageDa = new Mock<IMessageLogDa>();
             _nebulaContext = new NebulaContext();
-
             _nebulaContext.RegisterJobQueue(typeof(MockDelayedQueue), QueueType.Delayed);
-            _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
             
             _parameters = new HttpPushOutgoingQueueParameters
             {
-                RetryCount = 0,
                 TargetUrl = "http://s1ghasedak10:8006/api/v2/receive/incoming"
             };
 
@@ -48,86 +47,109 @@ namespace Wormhole.Tests.LogicTests
                 Parameters = JsonConvert.SerializeObject(_parameters)
             };
         }
+        
+        
 
-        [Fact]
-        public void Initialize_NullJobData_ExceptionThrown()
+        public class RetryalbeProcessorTests : HttpOutgoingQueueProcessorTests
         {
-            Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(null, _nebulaContext); });
+            public RetryalbeProcessorTests()
+            {
+                Options = Microsoft.Extensions.Options.Options.Create(new RetryConfiguration { Count = 3, Interval = 1 });
+                _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);
+                _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
+            }
+
+            [Fact]
+            public void Process_RetryWithWrongTargetUrl_Fail()
+            {
+                _parameters.TargetUrl += "/fake";
+
+                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+
+                var step = new HttpPushOutgoingQueueStep
+                {
+                    Category = "test_category",
+                    FailCount = 0,
+                    Payload = "test_message"
+                };
+                var jobData = new JobData()
+                {
+                    JobId = "test_job_id",
+                    Configuration = _jobConfiguration,
+                    TenantId = TenantId
+                };
+                _processor.Initialize(jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+                Assert.Equal(1, result.ItemsRequeued);
+                Assert.Equal(1, result.ItemsFailed);
+            }
         }
 
-        [Fact]
-        public void Initialize_NullNebulaContext_ExceptionThrown()
+        public class UnretryableProcessorTests : HttpOutgoingQueueProcessorTests
         {
-            Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(new JobData(), null); });
-        }
 
-        [Fact]
-        public void Process_WrongTargetUrl_Fail()
-        {
-            _parameters.TargetUrl += "/fake";
-            _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+            public UnretryableProcessorTests()
+            {
+                Options = Microsoft.Extensions.Options.Options.Create(new RetryConfiguration { Count = 0, Interval = 0 });
+                _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);
+                _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
+            }
 
-            var step = new HttpPushOutgoingQueueStep()
+            [Fact]
+            public void Initialize_NullJobData_ExceptionThrown()
             {
-                Category = "test_category",
-                FailCount = 0,
-                Payload = "test_message"
-            };
-            var jobData = new JobData()
-            {
-                JobId = "test_job_id",
-                Configuration = _jobConfiguration,
-                TenantId = TenantId
-            };
-            _processor.Initialize(jobData, _nebulaContext);
-            var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
-            Assert.Equal(1, result.ItemsFailed);
-        }
-        [Fact]
-        public void Process_RetryWithWrongTargetUrl_Fail()
-        {
-            _parameters.TargetUrl += "/fake";
-            _parameters.RetryCount = 3;
-            _parameters.RetryInterval = 1;
-            _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+                Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(null, _nebulaContext); });
+            }
 
-            var step = new HttpPushOutgoingQueueStep()
+            [Fact]
+            public void Initialize_NullNebulaContext_ExceptionThrown()
             {
-                Category = "test_category",
-                FailCount = 0,
-                Payload = "test_message"
-            };
-            var jobData = new JobData()
-            {
-                JobId = "test_job_id",
-                Configuration = _jobConfiguration,
-                TenantId = TenantId
-            };
-            _processor.Initialize(jobData, _nebulaContext);
-            var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
-            Assert.Equal(1, result.ItemsRequeued);
-            Assert.Equal(1, result.ItemsFailed);
-        }
+                Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(new JobData(), null); });
+            }
 
-        [Fact]
-        public void Process_AllDataSet_Success()
-        {
-            var step = new HttpPushOutgoingQueueStep()
+            [Fact]
+            public void Process_WrongTargetUrl_Fail()
             {
-                Category = "test_category",
-                FailCount = 0,
-                Payload = "test_message"
-            };
-            var jobData = new JobData()
+                _parameters.TargetUrl += "/fake";
+                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+
+                var step = new HttpPushOutgoingQueueStep()
+                {
+                    Category = "test_category",
+                    FailCount = 0,
+                    Payload = "test_message"
+                };
+                var jobData = new JobData()
+                {
+                    JobId = "test_job_id",
+                    Configuration = _jobConfiguration,
+                    TenantId = TenantId
+                };
+                _processor.Initialize(jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+                Assert.Equal(1, result.ItemsFailed);
+            }
+
+            [Fact]
+            public void Process_AllDataSet_Success()
             {
-                JobId = "test_job_id",
-                Configuration = _jobConfiguration,
-                TenantId = TenantId
-            };
-            _processor.Initialize(jobData,_nebulaContext);
-            var result = _processor.Process(new List<HttpPushOutgoingQueueStep> {step}).GetAwaiter().GetResult();
-            Assert.Equal(0, result.ItemsFailed);
-            Assert.Equal(0, result.ItemsRequeued);
+                var step = new HttpPushOutgoingQueueStep()
+                {
+                    Category = "test_category",
+                    FailCount = 0,
+                    Payload = "test_message"
+                };
+                var jobData = new JobData
+                {
+                    JobId = "test_job_id",
+                    Configuration = _jobConfiguration,
+                    TenantId = TenantId
+                };
+                _processor.Initialize(jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+                Assert.Equal(0, result.ItemsFailed);
+                Assert.Equal(0, result.ItemsRequeued);
+            }
         }
     }
 }

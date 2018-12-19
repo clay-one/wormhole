@@ -5,15 +5,16 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Wormhole.DomainModel
 {
-    public class MessageLog
+    public class OutgoingMessageLog
     {
         [BsonId]
         public ObjectId Id { get; set; }
+        public string JobStepIdentifier { get; set; }
         public object Payload { get; set; }
         public string Category { get; set; }
         public string Tag { get; set; }
         public int FailCount { get; set; }
         public DateTime CreatedOn { get; set; }
-        public List<PublishMessageOutput> PublishMessageOutputs { get; set; } = new List<PublishMessageOutput>();
+        public PublishMessageOutput PublishOutput { get; set; } 
     }
 }

@@ -12,7 +12,6 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class InputChannelController : ControllerBase
     {
-        private ILogger<InputChannelController> Logger { get; set; }
         private readonly IInputChannelDa _inputChannelDa;
 
         public InputChannelController(IInputChannelDa inputChannelDa, ILogger<InputChannelController> logger)
@@ -20,6 +19,8 @@ namespace Wormhole.Api.Controllers
             _inputChannelDa = inputChannelDa;
             Logger = logger;
         }
+
+        private ILogger<InputChannelController> Logger { get; }
 
         [HttpPost("http-push")]
         public async Task<IActionResult> AddHttpPushInputChannel(HttpPushInputputChannelAddRequest input)
