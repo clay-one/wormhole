@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Nebula;
-using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Newtonsoft.Json;
 using Wormhole.Api.Model;
@@ -36,7 +36,11 @@ namespace Wormhole.Worker
 
         private void OnMessageRecived(object sender, Message<Null, string> message)
         {
-            Logger.LogDebug(message.Value);
+            Stopwatch sw;
+            sw = Stopwatch.StartNew();
+
+            Logger.LogTrace($"{DateTime.Now}_Start of pushing to nebula");
+
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
             if (publishInput.Tags == null || publishInput.Tags.Count <1)
                 return;
@@ -61,6 +65,9 @@ namespace Wormhole.Worker
                     _nebulaContext.JobStepSourceBuilder.BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(pair.Key);
                 queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
             }
+
+            Logger.LogTrace($"{DateTime.Now}_End of pushing to nebula_Time taken: {sw.ElapsedMilliseconds}");
+            sw.Stop();
         }
     }
 }
