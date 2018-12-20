@@ -6,7 +6,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using hydrogen.General.Collections;
+using Hydrogen.General.Collections;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
