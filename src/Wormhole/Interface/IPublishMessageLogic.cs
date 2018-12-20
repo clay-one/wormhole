@@ -7,6 +7,6 @@ namespace Wormhole.Interface
 {
     public interface IPublishMessageLogic
     {
-        Task<ProduceMessageOutput> ProduceMessage(PublishInput input);
+        ProduceMessageOutput ProduceMessage(PublishInput input);
     }
 }
