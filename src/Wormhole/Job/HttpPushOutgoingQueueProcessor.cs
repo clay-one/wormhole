@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,10 @@ namespace Wormhole.Job
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
         private HttpPushOutgoingQueueParameters _parameters;
+        private static readonly List<HttpStatusCode> RetriableHttpResponses = new List<HttpStatusCode>()
+        {
+            HttpStatusCode.BadGateway,HttpStatusCode.GatewayTimeout,HttpStatusCode.ServiceUnavailable
+        };
 
         public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger,
             IMessageLogDa messageLogDa, IOptions<RetryConfiguration> options)
@@ -76,14 +81,18 @@ namespace Wormhole.Job
             }
 
             item.FailCount += 1;
-            await InsertMessageLog(item, publishResult);
             result.ItemsFailed = item.FailCount;
+            await InsertMessageLog(item, publishResult);
             result.FailureMessages = new[]
             {
                 publishResult.Error
             };
             Logger.LogInformation(
                 $"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
+
+            if (!RetryPolicyMeets(publishResult.HttpResponseCode))
+                return result;
+            
             if (item.FailCount > _retryConfig.Count)
                 return result;
 
@@ -91,6 +100,11 @@ namespace Wormhole.Job
             await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_retryConfig.Interval));
 
             return result;
+        }
+
+        private bool RetryPolicyMeets(HttpStatusCode responseCode)
+        {
+            return RetriableHttpResponses.Contains(responseCode);
         }
 
         private async Task InsertMessageLog(HttpPushOutgoingQueueStep item, SendMessageOutput publishResult)
@@ -115,10 +129,9 @@ namespace Wormhole.Job
         public async Task<SendMessageOutput> SendMessage(HttpPushOutgoingQueueStep input)
         {
             var httpContent = CreateContent(input.Payload);
-            var response = new HttpResponseMessage();
             try
             {
-                response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
+                var response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
                 if (response.IsSuccessStatusCode)
                     return new SendMessageOutput
                     {

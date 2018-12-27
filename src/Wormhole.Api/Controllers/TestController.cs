@@ -1,12 +1,12 @@
 ﻿using Hydrogen.General.Validation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Wormhole.Api.Model;
 
 namespace Wormhole.Api.Controllers
 {
     [Route("test")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class TestController : ControllerBase
     {
         private readonly IHostingEnvironment _hostingEnvironment;
@@ -17,7 +17,7 @@ namespace Wormhole.Api.Controllers
         }
 
         [HttpPost("incoming")]
-        public IActionResult InsertIncomingMessages([FromBody] PublishInput input)
+        public IActionResult InsertIncomingMessages([FromBody] object input)
         {
             if (!_hostingEnvironment.IsDevelopment())
             {
