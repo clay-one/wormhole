@@ -51,7 +51,7 @@ namespace Wormhole.Worker
 
             ConfigureNebula();
             AppSettingsProvider.MongoConnectionString =
-                AppConfiguration.GetConnectionString(Constants.MongoConnectionString);
+                AppConfiguration.GetConnectionString(Constants.MongoConnectionStringSection);
             StartNebulaService();
             var topics = GetTopics().GetAwaiter().GetResult();
             CreateJobs().GetAwaiter().GetResult();
@@ -208,8 +208,8 @@ namespace Wormhole.Worker
                     new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(),
                         sp.GetService<NebulaContext>(),
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
-                .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
-                .Configure<RetryConfiguration>(AppConfiguration.GetSection(Constants.RetryConfiguration))
+                .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfigSection))
+                .Configure<RetryConfiguration>(AppConfiguration.GetSection(Constants.RetryConfigSection))
                 .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
                 .BuildServiceProvider();
         }
