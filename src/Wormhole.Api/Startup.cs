@@ -24,10 +24,11 @@ namespace Wormhole.Api
         public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             Configuration = configuration;
-            env.ConfigureNLog("nlog.config");
+
+            env.ConfigureNLog($"nlog.{env.EnvironmentName}.config");     
         }
 
-        public IConfiguration Configuration { get; }
+        public IConfiguration Configuration;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public virtual void ConfigureServices(IServiceCollection services)

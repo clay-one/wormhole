@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -15,6 +16,7 @@ using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
+using NLog.Config;
 using NLog.Extensions.Logging;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
@@ -30,16 +32,15 @@ namespace Wormhole.Worker
     {
         private static readonly NebulaContext NebulaContext = new NebulaContext();
 
-        private static readonly IConfigurationRoot AppConfiguration =
-            BuildConfiguration(Directory.GetCurrentDirectory());
+        private static IConfigurationRoot AppConfiguration;           
 
-        private static readonly ServiceProvider ServiceProvider = ConfigureServices();
+        private static ServiceProvider ServiceProvider;
 
         private static readonly IDictionary<string, IConsumerBase> Consumers =
             new ConcurrentDictionary<string, IConsumerBase>();
 
         private static readonly IList<OutputChannel> OutputChannels = new List<OutputChannel>();
-        private static IConfigurationSection RetryConfig { get; } = AppConfiguration.GetSection("RetryConfiguration");
+        private static IConfigurationSection RetryConfig; 
 
         private static ILogger<NebulaWorker> Logger { get; set; }
 
@@ -47,7 +48,16 @@ namespace Wormhole.Worker
 
         public static void Main(string[] args)
         {
-            AddLogger();
+            ServicePointManager.UseNagleAlgorithm = true;
+            ServicePointManager.DefaultConnectionLimit = 1000;
+
+            var environment = args.FirstOrDefault();
+
+            AppConfiguration = BuildConfiguration(Directory.GetCurrentDirectory(), environment);
+            RetryConfig = AppConfiguration.GetSection("RetryConfiguration");
+            ServiceProvider = ConfigureServices();
+
+            AddLogger(environment);
 
             ConfigureNebula();
             AppSettingsProvider.MongoConnectionString =
@@ -178,10 +188,17 @@ namespace Wormhole.Worker
             }
         }
 
-        private static void AddLogger()
+        private static void AddLogger(string env)
         {
             Logger = ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<NebulaWorker>();
+
+            var defaultLog = "nlog.config";
+
+            NLog.LogManager.Configuration = !string.IsNullOrWhiteSpace(env)
+                ? new XmlLoggingConfiguration($"nlog.{env}.config")
+                : new XmlLoggingConfiguration(defaultLog);
+            
             Logger.LogDebug("Starting application");
         }
 
@@ -190,6 +207,8 @@ namespace Wormhole.Worker
             return new ServiceCollection()
                 .AddLogging(builder =>
                 {
+                    builder.AddConsole();
+
                     builder.AddNLog(new NLogProviderOptions
                     {
                         CaptureMessageTemplates = true,
@@ -228,7 +247,7 @@ namespace Wormhole.Worker
             NebulaContext.RegisterJobProcessor(httpPushDelayedQueueProcessor, typeof(HttpPushOutgoingQueueStep));
         }
 
-        private static IConfigurationRoot BuildConfiguration(string path, string environmentName = null)
+        private static IConfigurationRoot BuildConfiguration(string path, string environmentName)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(path)
@@ -241,7 +260,8 @@ namespace Wormhole.Worker
 
             builder = builder.AddEnvironmentVariables();
 
-            return builder.Build();
+            var configRoot =  builder.Build();
+            return configRoot;
         }
     }
 }
