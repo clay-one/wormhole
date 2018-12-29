@@ -23,7 +23,8 @@ namespace Wormhole.Api
         public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             Configuration = configuration;
-            env.ConfigureNLog("nlog.config");
+
+            env.ConfigureNLog($"nlog.{env.EnvironmentName}.config");     
         }
 
         public IConfiguration Configuration;

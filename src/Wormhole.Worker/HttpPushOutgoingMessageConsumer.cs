@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Nebula;
@@ -26,7 +25,7 @@ namespace Wormhole.Worker
             Topic = topicName;
             ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>
             {
-                new KeyValuePair<string, object>("group.id", "GroupId")
+                new KeyValuePair<string, object>("group.id", "wh.cg.test.1")
             };
 
             consumer.Initialize(config, MessageReceived);
@@ -37,11 +36,6 @@ namespace Wormhole.Worker
 
         private void MessageReceived(object sender, Message<Null, string> message)
         {
-            Stopwatch sw;
-            sw = Stopwatch.StartNew();
-
-            Logger.LogTrace($"{DateTime.Now}_Start of pushing to nebula");
-
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
             if (publishInput.Tags == null || publishInput.Tags.Count < 1)
             {
@@ -77,9 +71,6 @@ namespace Wormhole.Worker
                 Logger.LogInformation($"queueing message: {message.Value}");
                 queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
             }
-
-            Logger.LogTrace($"{DateTime.Now}_End of pushing to nebula_Time taken: {sw.ElapsedMilliseconds}");
-            sw.Stop();
         }
     }
 }

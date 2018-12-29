@@ -94,7 +94,7 @@ namespace Wormhole.Kafka
             config.Add(new KeyValuePair<string, object>(KafkaConfig.ConsumerGroupIdKey, _configuration.ConsumerGroupId));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.DefaultTopicConfigKey, new Dictionary<string, object>
             {
-                {"auto.offset.reset", "earliest"}
+                {"auto.offset.reset", "latest"}
             }));
 
             _consumer = new Consumer<Null, string>(config,null, new StringDeserializer(Encoding.UTF8));
