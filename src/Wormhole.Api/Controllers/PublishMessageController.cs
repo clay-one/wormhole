@@ -56,14 +56,5 @@ namespace Wormhole.Api.Controllers
 
             return Ok(ApiValidationResult.Ok());
         }
-
-        [HttpPost("fake-publish")]
-        public async Task<IActionResult> FakePublish([FromBody] PublishInput input)
-        {
-
-          
-
-            return Ok(ApiValidationResult.Ok());
-        }
     }
 }
