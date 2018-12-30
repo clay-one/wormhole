@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Wormhole.Proxy
+﻿namespace Wormhole.Proxy
 {
     public class Class1
     {
