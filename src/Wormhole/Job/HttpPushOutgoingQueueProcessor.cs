@@ -97,7 +97,7 @@ namespace Wormhole.Job
                 return result;
 
             result.ItemsRequeued = item.FailCount;
-            await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_retryConfig.Interval));
+            await _jobQueue.Enqueue(item, publishResult.ResponseTime.AddMinutes(_retryConfig.Interval));
 
             return result;
         }
@@ -111,10 +111,11 @@ namespace Wormhole.Job
         {
             var messageLog = new OutgoingMessageLog
             {
+                JobId = _jobId,
                 JobStepIdentifier = item.StepId,
                 Category = item.Category,
                 Tag = item.Tag,
-                CreatedOn = DateTime.Now,
+                ResponseTime = publishResult.ResponseTime,
                 Payload = item.Payload,
                 PublishOutput = new PublishMessageOutput
                 {
@@ -129,30 +130,21 @@ namespace Wormhole.Job
         public async Task<SendMessageOutput> SendMessage(HttpPushOutgoingQueueStep input)
         {
             var httpContent = CreateContent(input.Payload);
+            var output = new SendMessageOutput();
             try
             {
                 var response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
-                if (response.IsSuccessStatusCode)
-                    return new SendMessageOutput
-                    {
-                        Success = true,
-                        HttpResponseCode = response.StatusCode
-                    };
-
-                return new SendMessageOutput
-                {
-                    Success = false,
-                    HttpResponseCode = response.StatusCode,
-                    Error = response.ReasonPhrase
-                };
+                output.ResponseTime = DateTime.UtcNow;
+                output.Success = response.IsSuccessStatusCode;
+                output.HttpResponseCode = response.StatusCode;
+                output.Error = response.ReasonPhrase;
+                return output;
             }
             catch (Exception e)
             {
-                return new SendMessageOutput
-                {
-                    Success = false,
-                    Error = e.Message
-                };
+                output.Error = e.Message;
+                output.ResponseTime = DateTime.UtcNow;
+                return output;
             }
         }
 
