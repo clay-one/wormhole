@@ -1,4 +1,4 @@
-﻿namespace Wormhole.Kafka
+﻿namespace Wormhole.Configurations
 {
     public class KafkaConfig
     {

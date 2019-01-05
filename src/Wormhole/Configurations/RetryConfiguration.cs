@@ -1,4 +1,4 @@
-﻿namespace Wormhole.Job
+﻿namespace Wormhole.Configurations
 {
     public class RetryConfiguration
     {

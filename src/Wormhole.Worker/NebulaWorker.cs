@@ -18,6 +18,7 @@ using Nebula.Storage.Model;
 using Newtonsoft.Json;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
 using Wormhole.Interface;

@@ -13,6 +13,7 @@ using Nebula.Queue.Implementation;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
+using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.Interface;
 using Wormhole.Job;
@@ -70,6 +71,7 @@ namespace Wormhole.Worker
 
                         .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
                         .AddSingleton<IKafkaProducer, KafkaProducer>()
+                        .AddSingleton<IMongoUtil,MongoUtil>()
                         .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
                         .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
 
@@ -80,7 +82,8 @@ namespace Wormhole.Worker
 
                         .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
                         .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))
-                        .Configure<NebulaConfig>(config.GetSection(Constants.NebulaConfigSection));
+                        .Configure<NebulaConfig>(config.GetSection(Constants.NebulaConfigSection))
+                        .Configure<ConnectionStringsConfig>(config.GetSection(Constants.ConnectionStringsConfigSection));
                 })
                 .UseConsoleLifetime()
                 .Build();
@@ -101,12 +104,6 @@ namespace Wormhole.Worker
 
             return configFile;
         }
-    }
-
-    public class NebulaConfig
-    {
-        public string MongoConnectionString { get; set; }
-        public string RedisConnectionString { get; set; }
     }
 
     public class NebulaService

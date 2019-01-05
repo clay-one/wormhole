@@ -8,8 +8,14 @@ namespace Wormhole.DataImplementation
 {
     public class OutputChannelDa : IOutputChannelDa
     {
+        private readonly IMongoUtil _mongoUtil;
         private IMongoCollection<OutputChannel> OutputChannelCollection
-            => MongoUtil.GetCollection<OutputChannel>(nameof(OutputChannel));
+            => _mongoUtil.GetCollection<OutputChannel>(nameof(OutputChannel));
+
+        public OutputChannelDa(IMongoUtil mongoUtil)
+        {
+            _mongoUtil = mongoUtil;
+        }
         public async Task<List<OutputChannel>> FindOutputChannels()
         {
             return await OutputChannelCollection.Find(Builders<OutputChannel>.Filter.Empty).ToListAsync();

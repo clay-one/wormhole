@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,6 +17,7 @@ using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
 using Swashbuckle.AspNetCore.Swagger;
+using Wormhole.Configurations;
 
 namespace Wormhole.Api
 {
@@ -23,12 +25,12 @@ namespace Wormhole.Api
     {
         public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
-            Configuration = configuration;
+            _configuration = configuration;
 
             env.ConfigureNLog($"nlog.{env.EnvironmentName}.config");     
         }
 
-        public IConfiguration Configuration;
+        private readonly IConfiguration _configuration;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public virtual void ConfigureServices(IServiceCollection services)
@@ -36,33 +38,41 @@ namespace Wormhole.Api
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddScoped<IOutputChannelDa, OutputChannelDa>();
             services.AddScoped<IInputChannelDa, InputChannelDa>();
-            services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
-            services.AddScoped<ITenantLogic, TenantLogic>();
             services.AddScoped<ITenantDa, TenantDa>();
             services.AddScoped<IMessageLogDa, MessageLogDa>();
+            services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
+            services.AddScoped<ITenantLogic, TenantLogic>();
+            services.AddSingleton<IMongoUtil, MongoUtil>();
+            services.AddSingleton<IMongoCollectionConfig,InputChannelConfig>();
+            services.AddSingleton<IMongoCollectionConfig,OutputChannelConfig>();
+            services.AddSingleton<IMongoCollectionConfig,TenantConfig>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "Wormhole Apis", Version = "v1"}); });
             ConfigureAppSettingObjects(services);
         }
 
-        private static void ConfigureMongoConfigurationObjects()
+        private static void ConfigureMongo(IApplicationBuilder applicationBuilder)
         {
-            var interfaceType = typeof(IMongoCollectionConfig);
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(p => interfaceType.IsAssignableFrom(p) && p.IsClass);
-            foreach (var type in types)
+            //var interfaceType = typeof(IMongoCollectionConfig);
+            //var types = AppDomain.CurrentDomain.GetAssemblies()
+            //    .SelectMany(s => s.GetTypes())
+            //    .Where(p => interfaceType.IsAssignableFrom(p) && p.IsClass);
+            //foreach (var type in types)
+            //{
+            //    var config = (IMongoCollectionConfig) Activator.CreateInstance(type);
+            //    config.Configure();
+            //}
+            var collectionConfigs = applicationBuilder.ApplicationServices.GetServices<IMongoCollectionConfig>();
+            foreach (var config in collectionConfigs)
             {
-                var config = (IMongoCollectionConfig) Activator.CreateInstance(type);
                 config.Configure();
             }
         }
 
         private void ConfigureAppSettingObjects(IServiceCollection services)
         {
-            services.Configure<KafkaConfig>(Configuration.GetSection(Constants.KafkaConfigSection));
-            AppSettingsProvider.MongoConnectionString =
-                Configuration.GetConnectionString(Constants.MongoConnectionStringSection);
+            services.Configure<ConnectionStringsConfig>(_configuration.GetSection(Constants.ConnectionStringsConfigSection));
+            services.Configure<KafkaConfig>(_configuration.GetSection(Constants.KafkaConfigSection));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -70,7 +80,7 @@ namespace Wormhole.Api
         {
             ConfigureLogging(app, loggerFactory);
             ConfigureTypeMappings();
-            ConfigureMongoConfigurationObjects();
+            ConfigureMongo(app);
             ConfigureSwagger(app);
 
             if (env.IsDevelopment())

@@ -6,9 +6,16 @@ namespace Wormhole.DataImplementation
 {
     public class MessageLogDa : IMessageLogDa
     {
-        private IMongoCollection<OutgoingMessageLog> MessageLogCollection
-            => MongoUtil.GetCollection<OutgoingMessageLog>(nameof(OutgoingMessageLog));
+        private readonly IMongoUtil _mongoUtil;
+
         
+        private IMongoCollection<OutgoingMessageLog> MessageLogCollection
+            => _mongoUtil.GetCollection<OutgoingMessageLog>(nameof(OutgoingMessageLog));
+
+        public MessageLogDa(IMongoUtil mongoUtil)
+        {
+            _mongoUtil = mongoUtil;
+        }
 
         public async Task AddAsync(OutgoingMessageLog outgoingMessageLog)
         {

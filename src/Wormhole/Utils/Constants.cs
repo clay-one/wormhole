@@ -8,5 +8,6 @@
         public const string NebulaConfigSection = "Nebula";
         public const string KafkaConfigSection = "Kafka";
         public const string RetryConfigSection = "RetryConfiguration";
+        public const string ConnectionStringsConfigSection = "ConnectionStrings";
     }
 }

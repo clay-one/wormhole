@@ -6,6 +6,7 @@ using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Wormhole.Configurations;
 using ErrorCode = Confluent.Kafka.ErrorCode;
 
 namespace Wormhole.Kafka

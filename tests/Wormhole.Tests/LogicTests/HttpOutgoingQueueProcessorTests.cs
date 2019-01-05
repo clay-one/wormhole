@@ -9,6 +9,7 @@ using Nebula;
 using Nebula.Queue;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
+using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
 using Wormhole.Tests.Mocks;

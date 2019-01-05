@@ -10,11 +10,17 @@ namespace Wormhole.DataImplementation
 {
     public class TenantDa : ITenantDa
     {
+        private readonly IMongoUtil _mongoUtil;
+
         private IMongoCollection<Tenant> TenantCollection
-            => MongoUtil.GetCollection<Tenant>(nameof(Tenant));
+            => _mongoUtil.GetCollection<Tenant>(nameof(Tenant));
 
         private ILogger<TenantDa> Logger { get; set; }
 
+        public TenantDa(IMongoUtil mongoUtil)
+        {
+            _mongoUtil = mongoUtil;
+        }
         public TenantDa(ILogger<TenantDa> logger)
         {
             Logger = logger;
