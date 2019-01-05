@@ -25,7 +25,7 @@ namespace Wormhole.Worker
             Topic = topicName;
             ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>
             {
-                new KeyValuePair<string, object>("group.id", "GroupId")
+                new KeyValuePair<string, object>("group.id", "wh.cg.test.1")
             };
 
             consumer.Initialize(config, MessageReceived);
