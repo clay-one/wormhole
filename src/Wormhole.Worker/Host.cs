@@ -1,15 +1,12 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Nebula;
 using Nebula.Queue;
-using Nebula.Queue.Implementation;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
@@ -66,7 +63,6 @@ namespace Wormhole.Worker
                         .AddSingleton<IOutputChannelDa, OutputChannelDa>()
                         .AddSingleton<IMessageLogDa, MessageLogDa>()
                         
-                        //.AddSingleton(NebulaContext)
                         .AddSingleton<NebulaService>() //instead of registering a singleton instance
 
                         .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
@@ -79,7 +75,7 @@ namespace Wormhole.Worker
                         //    new HttpPushOutgoingMessageConsumer(sp.GetService<IKafkaConsumer<Null, string>>(),
                         //        sp.GetService<NebulaContext>(),
                         //        sp.GetService<ILoggerFactory>(), ConsumerTopicName))
-
+                        .AddHostedService<ConsumerHostedService>()
                         .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
                         .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))
                         .Configure<NebulaConfig>(config.GetSection(Constants.NebulaConfigSection))
@@ -103,30 +99,6 @@ namespace Wormhole.Worker
             }
 
             return configFile;
-        }
-    }
-
-    public class NebulaService
-    {
-        private NebulaContext _nebulaContext;
-        public NebulaService(IOptions<NebulaConfig> options, IJobProcessor<HttpPushOutgoingQueueStep> jobProcessor)
-        {
-            var nebulaConfig = options?.Value ?? throw new ArgumentNullException(nameof(options));
-
-            ConfigureNebulaContext(jobProcessor, nebulaConfig);
-        }
-
-        private void ConfigureNebulaContext(IJobProcessor<HttpPushOutgoingQueueStep> jobProcessor, NebulaConfig nebulaConfig)
-        {
-            _nebulaContext = new NebulaContext
-            {
-                MongoConnectionString = nebulaConfig.MongoConnectionString,
-                RedisConnectionString = nebulaConfig.RedisConnectionString
-            };
-
-            _nebulaContext.RegisterJobQueue(typeof(DelayedJobQueue<>), QueueType.Delayed);
-
-            _nebulaContext.RegisterJobProcessor(jobProcessor, typeof(HttpPushOutgoingQueueStep));
         }
     }
 }
