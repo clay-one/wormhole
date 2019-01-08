@@ -17,12 +17,9 @@ namespace Wormhole.DataImplementation
 
         private ILogger<TenantDa> Logger { get; set; }
 
-        public TenantDa(IMongoUtil mongoUtil)
+        public TenantDa(IMongoUtil mongoUtil, ILogger<TenantDa> logger)
         {
             _mongoUtil = mongoUtil;
-        }
-        public TenantDa(ILogger<TenantDa> logger)
-        {
             Logger = logger;
         }
 

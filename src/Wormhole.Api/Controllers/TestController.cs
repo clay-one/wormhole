@@ -1,4 +1,4 @@
-﻿using Hydrogen.General.Validation;
+﻿using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
