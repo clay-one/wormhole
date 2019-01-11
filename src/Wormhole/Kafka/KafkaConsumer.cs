@@ -39,7 +39,7 @@ namespace Wormhole.Kafka
 
         public void Dispose()
         {
-            _consumer.Dispose();
+            //_consumer.Dispose();
         }
 
         public event EventHandler<Error> OnError;

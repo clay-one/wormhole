@@ -134,7 +134,7 @@ namespace Wormhole.Worker
         private static async Task<List<OutputChannel>> GetOutputChannels()
         {
             var outputChannelDa = ServiceProvider.GetService<IOutputChannelDa>();
-            return await outputChannelDa.FindOutputChannels();
+            return await outputChannelDa.FindAsync();
         }
 
         private static void StartConsuming(List<string> topics)

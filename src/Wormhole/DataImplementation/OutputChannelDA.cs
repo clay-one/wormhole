@@ -16,9 +16,15 @@ namespace Wormhole.DataImplementation
         {
             _mongoUtil = mongoUtil;
         }
-        public async Task<List<OutputChannel>> FindOutputChannels()
+        public async Task<List<OutputChannel>> FindAsync()
         {
             return await OutputChannelCollection.Find(Builders<OutputChannel>.Filter.Empty).ToListAsync();
+        }
+
+        public async Task<OutputChannel> FindAsync(string externalKey)
+        {
+            var filter = Builders<OutputChannel>.Filter.Eq(a => a.ExternalKey , externalKey);
+            return await  OutputChannelCollection.Find(filter).FirstOrDefaultAsync();
         }
 
         public async Task SetJobId(string id, string jobId)

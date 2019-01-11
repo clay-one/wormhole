@@ -65,7 +65,7 @@ namespace Wormhole.Worker
 
         private async Task<List<OutputChannel>> GetOutputChannels()
         {
-            return await _outputChannelDa.FindOutputChannels();
+            return await _outputChannelDa.FindAsync();
         }
 
         private async Task CreateHttpPushOutgoingQueueJobsAsync(List<OutputChannel> outputChannels)
@@ -96,7 +96,7 @@ namespace Wormhole.Worker
                                 IsIndefinite = true
                             }, jobId: $"Wormhole_Job_{outputChannel.Id.ToString()}");
                     await _outputChannelDa.SetJobId(outputChannel.Id.ToString(), outputChannel.JobId);
-                    await _nebulaContext.GetJobManager().StartJob("__none__", outputChannel.JobId);
+                    await _nebulaContext.GetJobManager().StartJob("Fanap-plus", outputChannel.JobId);
                 }
             }
         }

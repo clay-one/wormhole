@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using MongoDB.Driver;
 using Wormhole.DomainModel;
 
@@ -20,6 +21,12 @@ namespace Wormhole.DataImplementation
         public async Task AddAsync(OutgoingMessageLog outgoingMessageLog)
         {
             await MessageLogCollection.InsertOneAsync(outgoingMessageLog);
+        }
+
+        public async Task<IList<OutgoingMessageLog>> FindAsync(string jobStepId)
+        {
+            var filter = Builders<OutgoingMessageLog>.Filter.Eq(a => a.JobStepIdentifier, jobStepId);
+            return await MessageLogCollection.Find(filter).ToListAsync();
         }
     }
 }
