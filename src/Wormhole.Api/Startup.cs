@@ -15,6 +15,7 @@ using Wormhole.Interface;
 using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Wormhole.Api
 {
@@ -40,6 +41,7 @@ namespace Wormhole.Api
             services.AddScoped<ITenantDa, TenantDa>();
             services.AddScoped<IMessageLogDa, MessageLogDa>();
             services.AddSingleton<IKafkaProducer, KafkaProducer>();
+            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "Wormhole Apis", Version = "v1"}); });
             ConfigureAppSettingObjects(services);
         }
 
@@ -69,6 +71,7 @@ namespace Wormhole.Api
             ConfigureLogging(app, loggerFactory);
             ConfigureTypeMappings();
             ConfigureMongoConfigurationObjects();
+            ConfigureSwagger(app);
 
             if (env.IsDevelopment())
             {
@@ -81,6 +84,20 @@ namespace Wormhole.Api
 
             MapWebApi(app);
             app.UseHttpsRedirection();
+        }
+
+        private void ConfigureSwagger(IApplicationBuilder app)
+        {
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                c.RoutePrefix = string.Empty;
+            });
         }
 
         private void ConfigureTypeMappings()

@@ -193,7 +193,7 @@ namespace Wormhole.Worker
             Logger = ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<NebulaWorker>();
 
-            var defaultLog = "nlog.config";
+            var defaultLog = "nlog.Production.config";
 
             NLog.LogManager.Configuration = !string.IsNullOrWhiteSpace(env)
                 ? new XmlLoggingConfiguration($"nlog.{env}.config")
@@ -252,7 +252,7 @@ namespace Wormhole.Worker
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(path)
-                .AddJsonFile("appsettings.json", true, true);
+                .AddJsonFile("appsettings.Production.json", true, true);
 
             if (!string.IsNullOrWhiteSpace(environmentName))
             {

@@ -9,12 +9,13 @@ namespace Wormhole.DomainModel
     {
         [BsonId]
         public ObjectId Id { get; set; }
+        public string JobId { get; set; }
         public string JobStepIdentifier { get; set; }
         public object Payload { get; set; }
         public string Category { get; set; }
         public string Tag { get; set; }
         public int FailCount { get; set; }
-        public DateTime CreatedOn { get; set; }
+        public DateTime ResponseTime { get; set; }
         public PublishMessageOutput PublishOutput { get; set; } 
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,10 @@ namespace Wormhole.Job
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
         private HttpPushOutgoingQueueParameters _parameters;
+        private static readonly List<HttpStatusCode> RetriableHttpResponses = new List<HttpStatusCode>()
+        {
+            HttpStatusCode.BadGateway,HttpStatusCode.GatewayTimeout,HttpStatusCode.ServiceUnavailable
+        };
 
         public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger,
             IMessageLogDa messageLogDa, IOptions<RetryConfiguration> options)
@@ -76,31 +81,41 @@ namespace Wormhole.Job
             }
 
             item.FailCount += 1;
-            await InsertMessageLog(item, publishResult);
             result.ItemsFailed = item.FailCount;
+            await InsertMessageLog(item, publishResult);
             result.FailureMessages = new[]
             {
                 publishResult.Error
             };
             Logger.LogInformation(
                 $"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
+
+            if (!RetryPolicyMeets(publishResult.HttpResponseCode))
+                return result;
+            
             if (item.FailCount > _retryConfig.Count)
                 return result;
 
             result.ItemsRequeued = item.FailCount;
-            await _jobQueue.Enqueue(item, DateTime.UtcNow.AddMinutes(_retryConfig.Interval));
+            await _jobQueue.Enqueue(item, publishResult.ResponseTime.AddMinutes(_retryConfig.Interval));
 
             return result;
+        }
+
+        private bool RetryPolicyMeets(HttpStatusCode responseCode)
+        {
+            return RetriableHttpResponses.Contains(responseCode);
         }
 
         private async Task InsertMessageLog(HttpPushOutgoingQueueStep item, SendMessageOutput publishResult)
         {
             var messageLog = new OutgoingMessageLog
             {
+                JobId = _jobId,
                 JobStepIdentifier = item.StepId,
                 Category = item.Category,
                 Tag = item.Tag,
-                CreatedOn = DateTime.Now,
+                ResponseTime = publishResult.ResponseTime,
                 Payload = item.Payload,
                 PublishOutput = new PublishMessageOutput
                 {
@@ -115,31 +130,21 @@ namespace Wormhole.Job
         public async Task<SendMessageOutput> SendMessage(HttpPushOutgoingQueueStep input)
         {
             var httpContent = CreateContent(input.Payload);
-            var response = new HttpResponseMessage();
+            var output = new SendMessageOutput();
             try
             {
-                response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
-                if (response.IsSuccessStatusCode)
-                    return new SendMessageOutput
-                    {
-                        Success = true,
-                        HttpResponseCode = response.StatusCode
-                    };
-
-                return new SendMessageOutput
-                {
-                    Success = false,
-                    HttpResponseCode = response.StatusCode,
-                    Error = response.ReasonPhrase
-                };
+                var response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
+                output.ResponseTime = DateTime.UtcNow;
+                output.Success = response.IsSuccessStatusCode;
+                output.HttpResponseCode = response.StatusCode;
+                output.Error = response.ReasonPhrase;
+                return output;
             }
             catch (Exception e)
             {
-                return new SendMessageOutput
-                {
-                    Success = false,
-                    Error = e.Message
-                };
+                output.Error = e.Message;
+                output.ResponseTime = DateTime.UtcNow;
+                return output;
             }
         }
 
