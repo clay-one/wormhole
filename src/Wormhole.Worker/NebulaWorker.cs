@@ -229,7 +229,8 @@ namespace Wormhole.Worker
                         sp.GetService<ILoggerFactory>(), ConsumerTopicName))
                 .Configure<KafkaConfig>(AppConfiguration.GetSection(Constants.KafkaConfig))
                 .Configure<RetryConfiguration>(AppConfiguration.GetSection(Constants.RetryConfiguration))
-                .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
+                //.AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
+                .AddSingleton<IJobProcessor<HttpPushOutgoingQueueStep>, SampleProcessor>()
                 .BuildServiceProvider();
         }
 
