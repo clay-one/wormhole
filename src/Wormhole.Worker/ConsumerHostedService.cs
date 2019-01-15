@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,20 +15,15 @@ namespace Wormhole.Worker
 {
     public class ConsumerHostedService : IHostedService
     {
-        private readonly IDictionary<string, IConsumerBase> _consumers =
-            new ConcurrentDictionary<string, IConsumerBase>();
-
-        private readonly IKafkaConsumer<Null, string> _kafkaConsumer;
         private readonly ILoggerFactory _loggerFactory;
         private readonly NebulaService _nebulaService;
+        private readonly IOptions<KafkaConfig> _options;
         private readonly ITenantDa _tenantDa;
 
-        public ConsumerHostedService(IOptions<KafkaConfig> options, ITenantDa tenantDa,
-            IKafkaConsumer<Null, string> kafkaConsumer, NebulaService nebulaService, ILoggerFactory loggerFactory)
+        public ConsumerHostedService(IOptions<KafkaConfig> options, ITenantDa tenantDa, NebulaService nebulaService, ILoggerFactory loggerFactory)
         {
-            var kafkaConfig = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _options = options;
             _tenantDa = tenantDa;
-            _kafkaConsumer = kafkaConsumer;
             _nebulaService = nebulaService;
             _loggerFactory = loggerFactory;
         }
@@ -65,10 +59,10 @@ namespace Wormhole.Worker
             }
         }
 
-        private IConsumerBase CreateConsumer(string topic)
+        private IKafkaConsumer<Null, string> CreateConsumer(string topic)
         {
-            return new HttpPushOutgoingMessageConsumer(_kafkaConsumer,
-                _nebulaService.NebulaContext,
+            return new HttpPushOutgoingMessageConsumer(_options,
+                _nebulaService,
                 _loggerFactory, topic);
         }
     }

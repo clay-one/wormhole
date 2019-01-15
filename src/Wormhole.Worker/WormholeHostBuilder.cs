@@ -81,7 +81,6 @@ namespace Wormhole.Worker
                     .AddSingleton<IKafkaProducer, KafkaProducer>()
                     .AddSingleton<IMongoUtil, MongoUtil>()
                     .AddScoped<IPublishMessageLogic, PublishMessageLogic>()
-                    .AddTransient<IKafkaConsumer<Null, string>, KafkaConsumer>()
                     .AddHostedService<ConsumerHostedService>()
                     .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
                     .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))

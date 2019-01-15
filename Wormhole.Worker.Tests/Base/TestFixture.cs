@@ -4,18 +4,14 @@ using Microsoft.Extensions.Hosting;
 
 namespace Wormhole.Integration.Tests
 {
-    public class TestFixture :IDisposable
+    public class TestFixture : IDisposable
     {
         private readonly IHost _host;
+
         public TestFixture()
         {
             _host = new TestHostBuilder().BuildHost(null);
             ServiceProvider = _host.Services;
-        }
-
-        public async Task Start()
-        {
-            await _host.StartAsync();
         }
 
         public IServiceProvider ServiceProvider { get; }
@@ -25,6 +21,11 @@ namespace Wormhole.Integration.Tests
         {
             _host.StopAsync();
             _host.Dispose();
+        }
+
+        public async Task Start()
+        {
+            await _host.StartAsync();
         }
     }
 }

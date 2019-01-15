@@ -26,15 +26,7 @@ namespace Wormhole.Kafka
         //     Executes on the same thread as every other Consumer event handler (except OnLog
         //     which may be called from an arbitrary thread).
         event EventHandler<Message> OnConsumeError;
-        //
-        // Summary:
-        //     Raised on librdkafka statistics events. JSON formatted string as defined here:
-        //     https://github.com/edenhill/librdkafka/wiki/Statistics
-        //
-        // Remarks:
-        //     Executes on the same thread as every other Consumer event handler (except OnLog
-        //     which may be called from an arbitrary thread).
-        event EventHandler<string> OnStatistics;
+        
         //
         // Summary:
         //     Raised when there is information that should be logged.
@@ -47,41 +39,7 @@ namespace Wormhole.Kafka
         //     spontaneously from internal librdkafka threads and the application must not call
         //     any Confluent.Kafka APIs from within a log handler or perform any prolonged operations.
         event EventHandler<LogMessage> OnLog;
-        //
-        // Summary:
-        //     Raised to report the result of (automatic) offset commits. Not raised as a result
-        //     of the use of the CommitAsync method.
-        //
-        // Remarks:
-        //     Executes on the same thread as every other Consumer event handler (except OnLog
-        //     which may be called from an arbitrary thread).
-        event EventHandler<CommittedOffsets> OnOffsetsCommitted;
-        //
-        // Summary:
-        //     Raised when a partition assignment is revoked. You should typically call the
-        //     Consumer.Unassign method in this handler.
-        //
-        // Remarks:
-        //     Executes on the same thread as every other Consumer event handler (except OnLog
-        //     which may be called from an arbitrary thread).
-        event EventHandler<List<TopicPartition>> OnPartitionsRevoked;
-        //
-        // Summary:
-        //     Raised on new partition assignment. You should typically call the Consumer.Assign
-        //     method in this handler.
-        //
-        // Remarks:
-        //     Executes on the same thread as every other Consumer event handler (except OnLog
-        //     which may be called from an arbitrary thread).
-        event EventHandler<List<TopicPartition>> OnPartitionsAssigned;
-        //
-        // Summary:
-        //     Raised when the consumer reaches the end of a topic/partition it is reading from.
-        //
-        // Remarks:
-        //     Executes on the same thread as every other Consumer event handler (except OnLog
-        //     which may be called from an arbitrary thread).
-        event EventHandler<TopicPartitionOffset> OnPartitionEOF;
+     
         //
         // Summary:
         //     Raised when a new message is avaiable for consumption. NOT raised when Consumer.Consume
@@ -149,13 +107,14 @@ namespace Wormhole.Kafka
         // Summary:
         //     Stop consumption and remove the current assignment.
         void Unassign();
-
-        void SetDiagnostic(ConsumerDiagnostic consumerDiagnostic);
+        
         /// <summary>
         /// 
         /// </summary>
         /// <param name="config"></param>
         /// <param name="onMessageEventHandler">Event Handler on Recive Payload</param>
         void Initialize(ICollection<KeyValuePair<string, object>> config, EventHandler<Message<Null, string>> onMessageEventHandler);
+        void Start();
+        void Stop();
     }
 }

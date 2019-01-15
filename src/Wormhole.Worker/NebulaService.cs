@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using hydrogen.General.Collections;
 using Microsoft.Extensions.Options;
 using Nebula;
 using Nebula.Queue;
@@ -20,6 +21,7 @@ namespace Wormhole.Worker
     {
         private readonly IOutputChannelDa _outputChannelDa;
         private readonly NebulaContext _nebulaContext;
+        private readonly List<OutputChannel> OutputChannels = new List<OutputChannel>();
 
         public NebulaContext NebulaContext => _nebulaContext;
 
@@ -44,6 +46,19 @@ namespace Wormhole.Worker
             return Task.CompletedTask;
         }
 
+        public IEnumerable<KeyValuePair<string, string>> GetJobIdTagPairs(string tenant, string category,
+            IList<string> tags)
+        {
+            var list = new List<KeyValuePair<string, string>>();
+            foreach (var tag in tags)
+            {
+                list.Add(OutputChannels.Where(o =>
+                        o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
+                    .Select(o => new KeyValuePair<string, string>(o.JobId, o.FilterCriteria.Tag)).FirstOrDefault());
+            }
+
+            return list;
+        }
 
         private void ConfigureNebulaContext(IJobProcessor<HttpPushOutgoingQueueStep> jobProcessor,
             NebulaConfig nebulaConfig)
@@ -58,8 +73,8 @@ namespace Wormhole.Worker
 
         private async Task StartJobs()
         {
-            var outputChannels = await GetOutputChannels();
-            await CreateHttpPushOutgoingQueueJobsAsync(outputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
+            OutputChannels.AddAll(await GetOutputChannels());
+            await CreateHttpPushOutgoingQueueJobsAsync(OutputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
                 .ToList());
         }
 
@@ -94,7 +109,7 @@ namespace Wormhole.Worker
                                 Parameters = JsonConvert.SerializeObject(parameters),
                                 QueueTypeName = QueueType.Delayed,
                                 IsIndefinite = true
-                            }, jobId: $"Wormhole_Job_{outputChannel.Id.ToString()}");
+                            }, jobId: $"Wormhole_{outputChannel.ExternalKey}");
                     await _outputChannelDa.SetJobId(outputChannel.Id.ToString(), outputChannel.JobId);
                     await _nebulaContext.GetJobManager().StartJob("Fanap-plus", outputChannel.JobId);
                 }

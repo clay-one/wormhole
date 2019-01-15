@@ -1,5 +1,7 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Nebula.Queue.Implementation;
 using Wormhole.Configurations;
@@ -11,49 +13,49 @@ using Xunit;
 
 namespace Wormhole.Integration.Tests
 {
-    public class HttpOutgoingQueueProcessorTests : IClassFixture<TestFixture>
+    public class HttpOutgoingQueueProcessorTests : IClassFixture<TestFixture>, IDisposable
     {
-        private readonly NebulaService _nebulaService;
-        private const string TestOutputChannelKey = "TestOutputChannel";
-        private IOutputChannelDa OutputChannelDa { get; set; }
-        private NebulaService NebulaService { get; set; }
-        private IMessageLogDa MessageLogDa { get; set; }
-        private IOptions<RetryConfiguration> RetryConfiguration { get; set; }
         public HttpOutgoingQueueProcessorTests(TestFixture fixture)
         {
-            var outputChannel = new OutputChannel()
-            {
-                ChannelType = ChannelType.HttpPush,
-                TypeSpecification =
-                    new HttpPushOutputChannelSpecification()
-                    {
-                        PayloadOnly = true,
-                        TargetUrl = "https://httpstat.us/503/"
-                    },
-                ExternalKey = TestOutputChannelKey,
-                FilterCriteria = new MessageFilterCriteria() { Category = "IncommingMessages", Tag = "SDP"},
-                TenantId = "Fanap-plus"
-            };
-            OutputChannelDa = fixture.ServiceProvider.GetService(typeof(IOutputChannelDa)) as IOutputChannelDa;
-            OutputChannelDa.AddOutputChannel(outputChannel).GetAwaiter().GetResult();
-            NebulaService = fixture.ServiceProvider.GetService(typeof(NebulaService)) as NebulaService;
-            MessageLogDa = fixture.ServiceProvider.GetService(typeof(IMessageLogDa)) as IMessageLogDa;
-            RetryConfiguration = fixture.ServiceProvider.GetService(typeof(IOptions<RetryConfiguration>)) as IOptions<RetryConfiguration>;
+            var mongoUtil = fixture.ServiceProvider.GetService(typeof(IMongoUtil)) as IMongoUtil;
+            _outputChannelDataGenerator = new OutputChannelDataGenerator(mongoUtil);
+            _outputChannelDa = fixture.ServiceProvider.GetService(typeof(IOutputChannelDa)) as IOutputChannelDa;
+            _nebulaService = fixture.ServiceProvider.GetService(typeof(NebulaService)) as NebulaService;
+            _messageLogDa = fixture.ServiceProvider.GetService(typeof(IMessageLogDa)) as IMessageLogDa;
+            _retryConfiguration = fixture.ServiceProvider.GetService(typeof(IOptions<RetryConfiguration>)) as IOptions<RetryConfiguration>;
+            _outputChannelDataGenerator.AddHttpPushOutputChannel(TestOutputChannelKey, "https://httpstat.us/503/",
+                "incommingMessages", "SDP", "Fanap-plus");
             fixture.Start().GetAwaiter().GetResult();
         }
 
+        public void Dispose()
+        {
+            _outputChannelDataGenerator.RemoveGenerated(TestOutputChannelKey);
+        }
 
+        private readonly OutputChannelDataGenerator _outputChannelDataGenerator;
+        private const string TestOutputChannelKey = "TestOutputChannel";
+        private readonly IOutputChannelDa _outputChannelDa;
+        private readonly NebulaService _nebulaService;
+        private readonly IMessageLogDa _messageLogDa;
+        private readonly IOptions<RetryConfiguration> _retryConfiguration;
+
+        private async Task<IList<OutgoingMessageLog>> GetLogsWithDelay(string stepId)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(_retryConfiguration.Value.Interval * _retryConfiguration.Value.Count + 1));
+            return _messageLogDa.FindAsync(stepId).GetAwaiter().GetResult().OrderBy(l=>l.CreatedOn).ToList();
+        }
 
         [Fact]
-        public void Process_RetriableResults_FailAndRetry()
+        public async Task Process_RetriableResults_FailAndRetry()
         {
-            var channel = OutputChannelDa.FindAsync(TestOutputChannelKey).GetAwaiter().GetResult();
+            var channel = _outputChannelDa.FindAsync(TestOutputChannelKey).GetAwaiter().GetResult();
             var jobId = channel.JobId;
             var stepId = Guid.NewGuid().ToString();
-            var queue = NebulaService.NebulaContext
+            var queue = _nebulaService.NebulaContext
                 .JobStepSourceBuilder
                 .BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(jobId);
-            var step = new HttpPushOutgoingQueueStep()
+            var step = new HttpPushOutgoingQueueStep
             {
                 Category = channel.FilterCriteria.Category,
                 Tag = channel.FilterCriteria.Tag,
@@ -62,10 +64,13 @@ namespace Wormhole.Integration.Tests
 
             };
             queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
-            var waitTime = (int)(RetryConfiguration.Value.Interval * 60 * 1000);
-            Thread.Sleep(waitTime);
-            var logs = MessageLogDa.FindAsync(stepId).GetAwaiter().GetResult();
-            Assert.Equal(logs.Count, RetryConfiguration.Value.Count + 1);
+            var outgoingMessageLogs = await GetLogsWithDelay(stepId);
+            Assert.Equal(outgoingMessageLogs.Count, _retryConfiguration.Value.Count + 1);
+            if (outgoingMessageLogs.Count > 1)
+            {
+                var diff = outgoingMessageLogs[1].CreatedOn.Subtract(outgoingMessageLogs[0].CreatedOn).TotalMinutes;
+                Assert.True(Math.Abs(diff - _retryConfiguration.Value.Interval) < 0.05);
+            }
         }
     }
 }
