@@ -12,6 +12,7 @@ using Nebula.Queue;
 using Nebula.Queue.Implementation;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
+using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
 using Wormhole.DTO;

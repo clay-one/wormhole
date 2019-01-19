@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -22,14 +23,15 @@ namespace Wormhole.Api.Controllers
 
         private ILogger<TenantController> Logger { get; }
 
-        [HttpPost("")]
+        [HttpPost]
         public async Task<IActionResult> AddTenant(AddTenantRequest request)
         {
-            Logger.LogDebug($"TenantController - AddTenant method called with this input: {request}");
+            Logger.LogDebug(
+                $"{nameof(TenantController)} - {nameof(AddTenant)} method called with this input: {request}");
 
             if (string.IsNullOrWhiteSpace(request.Identifier) || string.IsNullOrWhiteSpace(request.Name))
             {
-                return BadRequest(new {Message = ErrorKeys.ParameterNull});
+                return BadRequest(new { Message = ErrorKeys.ParameterNull });
             }
 
             var input = Mapping.AutoMapper.Mapper.Map<Tenant>(request);
@@ -37,23 +39,23 @@ namespace Wormhole.Api.Controllers
 
             if (result?.Error != null)
             {
-                return BadRequest(new {Message = result.Error});
+                return BadRequest(new { Message = result.Error });
             }
 
             return Ok(ApiValidatedResult<AddTenantResponse>.Ok(
                 Mapping.AutoMapper.Mapper.Map<AddTenantResponse>(input)));
         }
 
-        [HttpPut("")]
-        public async Task<IActionResult> EditTenant(EditTenantRequest request)
+        [HttpPut]
+        public IActionResult EditTenant(EditTenantRequest request)
         {
-            return null;
+            throw new NotImplementedException();
         }
 
-        [HttpDelete("")]
-        public async Task<IActionResult> DeleteTenant()
+        [HttpDelete]
+        public IActionResult DeleteTenant()
         {
-            return null;
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,38 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Nebula;
 using Nebula.Queue.Implementation;
 using Newtonsoft.Json;
 using Wormhole.Api.Model;
+using Wormhole.Configurations;
 using Wormhole.Job;
 using Wormhole.Kafka;
 
 namespace Wormhole.Worker
 {
-    public class HttpPushOutgoingMessageConsumer : ConsumerBase, IDisposable
+    public class HttpPushOutgoingMessageConsumer : KafkaConsumer, IDisposable
     {
-        private readonly NebulaContext _nebulaContext;
+        private readonly ILogger _logger;
+        private readonly NebulaService _nebulaService;
 
 
-        public HttpPushOutgoingMessageConsumer(IKafkaConsumer<Null, string> consumer, NebulaContext nebulaContext,
-            ILoggerFactory logger, string topicName) : base(consumer, logger,
-            ConsumerDiagnosticProvider.GetStat(typeof(HttpPushOutgoingMessageConsumer).FullName, topicName))
+        public HttpPushOutgoingMessageConsumer(IOptions<KafkaConfig> options, NebulaService nebulaService,
+            ILoggerFactory logger, string topicName) : base(options, logger,
+            ConsumerDiagnosticProvider.GetStat(typeof(HttpPushOutgoingMessageConsumer).FullName, topicName), topicName)
         {
-            _nebulaContext = nebulaContext;
-            Topic = topicName;
-            ICollection<KeyValuePair<string, object>> config = new Collection<KeyValuePair<string, object>>
-            {
-                new KeyValuePair<string, object>("group.id", "wh.cg.test.1")
-            };
-
-            consumer.Initialize(config, MessageReceived);
+            _nebulaService = nebulaService;
+            _logger = logger.CreateLogger(nameof(HttpPushOutgoingMessageConsumer));
+            Initialize(new List<KeyValuePair<string, object>>(), MessageReceived);
         }
-
-
-        public override string Topic { get; }
 
         private void MessageReceived(object sender, Message<Null, string> message)
         {
@@ -48,7 +42,7 @@ namespace Wormhole.Worker
             }
 
             var jobIdTagPairs =
-                NebulaWorker.GetJobIdTagPairs(publishInput.Tenant, publishInput.Category, publishInput.Tags);
+                _nebulaService.GetJobIdTagPairs(publishInput.Tenant, publishInput.Category, publishInput.Tags);
             if (jobIdTagPairs == null)
             {
                 return;
@@ -64,11 +58,11 @@ namespace Wormhole.Worker
             foreach (var (key, value) in jobIdTagPairs)
             {
                 step.Tag = value;
-                var queue = _nebulaContext
+                var queue = _nebulaService.NebulaContext
                     .JobStepSourceBuilder
                     .BuildDelayedJobQueue<HttpPushOutgoingQueueStep>(key);
 
-                Logger.LogInformation($"queueing message: {message.Value}");
+                _logger.LogInformation($"queueing message: {message.Value}");
                 queue.Enqueue(step, DateTime.UtcNow).GetAwaiter().GetResult();
             }
         }

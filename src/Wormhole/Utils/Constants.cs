@@ -1,11 +1,13 @@
 ﻿namespace Wormhole.Utils
 {
-    public class Constants
+    public static class Constants
     {
-        public const string MongoConnectionString = "wormhole:mongoConnectionString";
+        public const string MongoConnectionStringSection = "Mongo";
         public const string NebulaMongoConnectionString = "nebula:mongoConnectionString";
         public const string NebulaRedisConnectionString = "nebula:redisConnectionString";
-        public const string KafkaConfig = "KafkaConfig";
-        public const string RetryConfiguration = "RetryConfiguration";
+        public const string NebulaConfigSection = "Nebula";
+        public const string KafkaConfigSection = "Kafka";
+        public const string RetryConfigSection = "RetryConfiguration";
+        public const string ConnectionStringsConfigSection = "ConnectionStrings";
     }
 }

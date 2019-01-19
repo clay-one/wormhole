@@ -1,57 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using System.Threading;
 using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ErrorCode = Confluent.Kafka.ErrorCode;
+using Wormhole.Configurations;
 
 namespace Wormhole.Kafka
 {
     public class KafkaConsumer: IKafkaConsumer<Null, string>, IDisposable
     {
-        private readonly ILogger _logger;
-        private Consumer<Null, string> _consumer;
         private readonly KafkaConfig _configuration;
-        private ConsumerDiagnostic _consumerDiagnostic;
+        private readonly ILogger _logger;
+        private readonly ConsumerDiagnostic _consumerDiagnostic;
+        private readonly string _topicName;
+        private Consumer<Null, string> _consumer;
+        private bool _continue = true;
+        private Thread _thread;
 
-        public KafkaConsumer(IOptions<KafkaConfig> options, ILoggerFactory logger)
+
+        public KafkaConsumer(IOptions<KafkaConfig> options, ILoggerFactory logger, ConsumerDiagnostic consumerDiagnostic, string topicName)
         {
             _logger = logger.CreateLogger(nameof(KafkaConsumer));
             _configuration = options.Value;
+            _consumerDiagnostic = consumerDiagnostic;
+            _topicName = topicName;
 			OnError += Error;
-			OnPartitionsAssigned += PartitionsAssigned;
-			OnPartitionEOF += PartitionEof;
-			OnStatistics += Statistics;
-			OnPartitionsRevoked += PartitionsRevoked;
 			OnConsumeError += ConsumeError;
-			OnOffsetsCommitted += OffsetsCommitted;
 			OnLog += Log;
         }
-
-        private void Log(object sender, LogMessage e)
-        {
-            _logger.LogInformation($"{e.Facility,-12} : {e.Message}");
-        }
-
         public void Dispose()
         {
-            _consumer.Dispose();
+            _consumer?.Dispose();
         }
 
         public event EventHandler<Error> OnError;
         public event EventHandler<Message> OnConsumeError;
-        public event EventHandler<string> OnStatistics;
         public event EventHandler<LogMessage> OnLog;
-        public event EventHandler<CommittedOffsets> OnOffsetsCommitted;
-        public event EventHandler<List<TopicPartition>> OnPartitionsRevoked;
-        public event EventHandler<List<TopicPartition>> OnPartitionsAssigned;
-        public event EventHandler<TopicPartitionOffset> OnPartitionEOF;
         public event EventHandler<Message<Null, string>> OnMessage;
         public string MemberId { get; }
         public List<string> Subscription { get; }
+
         public void Poll(TimeSpan timeout)
         {
             _consumer.Poll(timeout);
@@ -77,11 +68,6 @@ namespace Wormhole.Kafka
             _consumer.Unassign();
         }
 
-        public void SetDiagnostic(ConsumerDiagnostic consumerDiagnostic)
-        {
-            _consumerDiagnostic = consumerDiagnostic;
-        }
-
         public void Initialize(ICollection<KeyValuePair<string, object>> config, EventHandler<Message<Null, string>> onMessageEventHandler)
         {
             OnMessage = onMessageEventHandler;
@@ -102,54 +88,51 @@ namespace Wormhole.Kafka
             _consumer.OnMessage += OnMessage;
             _consumer.OnError += OnError;
             _consumer.OnConsumeError += OnConsumeError;
-            _consumer.OnOffsetsCommitted += OnOffsetsCommitted;
             _consumer.OnLog += OnLog;
-            _consumer.OnPartitionEOF += OnPartitionEOF;
-            _consumer.OnStatistics += OnStatistics;
-            _consumer.OnPartitionsRevoked += OnPartitionsRevoked;
-            _consumer.OnPartitionsAssigned += OnPartitionsAssigned;
             _logger.LogInformation($"consumer : {_consumer.Name} initialized");
-
         }
 
-        private void OffsetsCommitted(object sender, CommittedOffsets committedOffsets)
+        public void Start()
         {
-            var commitErrors = string.Join(", ", committedOffsets.Offsets.Where(c => c.Error.Code != ErrorCode.NoError));
-            var commitResult = string.IsNullOrWhiteSpace(commitErrors) ? "Success" : commitErrors;
-            _logger.LogInformation($"Offsets Commit Status: {commitResult}");
+            Subscribe(_topicName);
 
-            if (committedOffsets.Error)
-                _consumerDiagnostic?.IncrementExceptionCount();
+            if (_thread == null || !_thread.IsAlive)
+            {
+                _thread = new Thread(() =>
+                {
+                    //LogicalThreadContext.Properties["MUID"] = Guid.NewGuid().ToString("N");
+                    do
+                    {
+                        try
+                        {
+                            Poll(TimeSpan.FromMilliseconds(100));
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError("exception in thread of consuming", e);
+                            _consumerDiagnostic.IncrementExceptionCount();
+                        }
+                    } while (_continue);
+                });
+
+                _thread.Start();
+            }
+        }
+
+        public virtual void Stop()
+        {
+            _continue = false;
+        }
+
+        private void Log(object sender, LogMessage e)
+        {
+            _logger.LogInformation($"{e.Facility,-12} : {e.Message}");
         }
 
         private void ConsumeError(object sender, Message message)
         {
             _logger.LogError(
               $"Error consuming from topic/partition/offset {message.Topic}/{message.Partition}/{message.Offset}: {message.Error}");
-        }
-
-        private void PartitionsRevoked(object sender, List<TopicPartition> topicPartitions)
-        {
-            _logger.LogInformation($"Revoked partitions: [{string.Join(", ", topicPartitions)}]");
-            _consumer.Unassign();
-        }
-
-        private void Statistics(object sender, string s)
-        {
-            _logger.LogInformation($"Statistics: {s}");
-        }
-
-        private void PartitionEof(object sender, TopicPartitionOffset topicPartitionOffset)
-        {
-            _logger.LogInformation(
-               $"Reached end of topic {topicPartitionOffset.Topic} partition {topicPartitionOffset.Partition}, next message will be at offset {topicPartitionOffset.Offset}");
-        }
-
-        private void PartitionsAssigned(object sender, List<TopicPartition> topicPartitions)
-        {
-           _logger.LogInformation($"Assigned partitions: [{string.Join(", ", topicPartitions)}], member id: {_consumer.MemberId}");
-
-            _consumer.Assign(topicPartitions);
         }
 
         private void Error(object sender, Error error1)

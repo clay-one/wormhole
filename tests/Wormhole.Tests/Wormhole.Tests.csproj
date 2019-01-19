@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -20,9 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Wormhole.Api\Wormhole.Api.csproj" />
-    <ProjectReference Include="..\src\Wormhole\Wormhole.csproj" />
-
+    <ProjectReference Include="..\..\src\Wormhole\Wormhole.csproj" />
   </ItemGroup>
 
  

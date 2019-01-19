@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using hydrogen.General.Validation;
+﻿using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Model;
@@ -23,7 +22,7 @@ namespace Wormhole.Api.Controllers
         private ILogger<PublishMessageController> Logger { get; }
 
         [HttpPost("publish")]
-        public async Task<IActionResult> Publish([FromBody] PublishInput input)
+        public IActionResult Publish([FromBody] PublishInput input)
         {
             Logger.LogDebug($"PublishMessageController - Publish method called with this input: {input}");
             if (input == null)
@@ -47,11 +46,11 @@ namespace Wormhole.Api.Controllers
                 return BadRequest(new ApiValidationError(nameof(PublishInput.Tags), ErrorKeys.ParameterNull));
             }
 
-            var result = await _publishMessageLogic.ProduceMessage(input);
+            var result = _publishMessageLogic.ProduceMessage(input);
 
-            if (result.Error != null)
+            if (!string.IsNullOrEmpty(result.Error))
             {
-                return BadRequest(new {Message = result.Error});
+                return BadRequest(new { Message = result.Error });
             }
 
             return Ok(ApiValidationResult.Ok());
