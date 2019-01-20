@@ -1,10 +1,9 @@
-﻿using System.Threading.Tasks;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using Nebula.Storage.Model;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
 
-namespace Wormhole.Integration.Tests
+namespace Wormhole.Integration.Tests.Base
 {
     internal class OutputChannelDataGenerator
     {
@@ -14,7 +13,9 @@ namespace Wormhole.Integration.Tests
         {
             _mongoUtil = mongoUtil;
         }
-        public OutputChannel AddHttpPushOutputChannel(string externalKey, string targetUrl,string category, string tag, string tenantId)
+
+        public OutputChannel AddHttpPushOutputChannel(string externalKey, string targetUrl, string category, string tag,
+            string tenantId)
         {
             var outputChannel = new OutputChannel
             {
@@ -26,7 +27,7 @@ namespace Wormhole.Integration.Tests
                         TargetUrl = targetUrl
                     },
                 ExternalKey = externalKey,
-                FilterCriteria = new MessageFilterCriteria() { Category = category, Tag = tag},
+                FilterCriteria = new MessageFilterCriteria {Category = category, Tag = tag},
                 TenantId = tenantId
             };
             _mongoUtil.GetCollection<OutputChannel>(nameof(OutputChannel)).InsertOne(outputChannel);
@@ -35,8 +36,9 @@ namespace Wormhole.Integration.Tests
 
         public void RemoveGenerated(string testOutputChannelKey)
         {
-            var outputChannelFilter = Builders<OutputChannel>.Filter.Eq(nameof(OutputChannel.ExternalKey), testOutputChannelKey);
-            var jobFilter = Builders<JobData>.Filter.Where(j=> j.JobId.EndsWith(testOutputChannelKey));
+            var outputChannelFilter =
+                Builders<OutputChannel>.Filter.Eq(nameof(OutputChannel.ExternalKey), testOutputChannelKey);
+            var jobFilter = Builders<JobData>.Filter.Where(j => j.JobId.EndsWith(testOutputChannelKey));
             _mongoUtil.GetCollection<OutputChannel>(nameof(OutputChannel)).DeleteOne(outputChannelFilter);
             _mongoUtil.GetCollection<JobData>(nameof(JobData)).DeleteOne(jobFilter);
         }

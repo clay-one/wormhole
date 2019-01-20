@@ -7,6 +7,7 @@ using Nebula.Queue.Implementation;
 using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
+using Wormhole.Integration.Tests.Base;
 using Wormhole.Job;
 using Wormhole.Worker;
 using Xunit;
@@ -43,7 +44,7 @@ namespace Wormhole.Integration.Tests
         private async Task<IList<OutgoingMessageLog>> GetLogsWithDelay(string stepId)
         {
             await Task.Delay(TimeSpan.FromMinutes(_retryConfiguration.Value.Interval * _retryConfiguration.Value.Count + 1));
-            return _messageLogDa.FindAsync(stepId).GetAwaiter().GetResult().OrderBy(l=>l.CreatedOn).ToList();
+            return _messageLogDa.FindAsync(stepId).GetAwaiter().GetResult().OrderBy(l=>l.ResponseTime).ToList();
         }
 
         [Fact]
@@ -68,7 +69,7 @@ namespace Wormhole.Integration.Tests
             Assert.Equal(outgoingMessageLogs.Count, _retryConfiguration.Value.Count + 1);
             if (outgoingMessageLogs.Count > 1)
             {
-                var diff = outgoingMessageLogs[1].CreatedOn.Subtract(outgoingMessageLogs[0].CreatedOn).TotalMinutes;
+                var diff = outgoingMessageLogs[1].ResponseTime.Subtract(outgoingMessageLogs[0].ResponseTime).TotalMinutes;
                 Assert.True(Math.Abs(diff - _retryConfiguration.Value.Interval) < 0.05);
             }
         }

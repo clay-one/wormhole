@@ -57,10 +57,6 @@ namespace Wormhole.Tests.LogicTests
 
         public class ProcessorRetryTests : HttpOutgoingQueueProcessorTests
         {
-            private readonly IHttpServer _stubHttp;
-            private readonly HttpPushOutgoingQueueStep _step;
-            private readonly JobData _jobData;
-            private readonly RetryConfiguration retryConfiguration = new RetryConfiguration {Count = 3, Interval = 1};
             public ProcessorRetryTests()
             {
                 Options = Microsoft.Extensions.Options.Options.Create(retryConfiguration);
@@ -78,7 +74,7 @@ namespace Wormhole.Tests.LogicTests
                 _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
 
 
-                _jobData = new JobData()
+                _jobData = new JobData
                 {
                     JobId = "test_job_id",
                     Configuration = _jobConfiguration,
@@ -86,21 +82,11 @@ namespace Wormhole.Tests.LogicTests
                 };
             }
 
-            [Fact]
-            public void Process_FailedMoreThanRetryCount_FailAndNoRetry()
-            {
-                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
-                var failCount = retryConfiguration.Count;
-                _step.FailCount = failCount;
-                _stubHttp.Stub(x => x.Post("/endpoint"))
-                    .Return("")
-                    .WithStatus(HttpStatusCode.BadGateway);
-                _processor.Initialize(_jobData, _nebulaContext);
-                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
-                Assert.Equal(failCount+ 1 , result.ItemsFailed);
-                Assert.Equal(0 , result.ItemsRequeued);
-            }
-            
+            private readonly IHttpServer _stubHttp;
+            private readonly HttpPushOutgoingQueueStep _step;
+            private readonly JobData _jobData;
+            private readonly RetryConfiguration retryConfiguration = new RetryConfiguration { Count = 3, Interval = 1 };
+
             [Theory]
             [InlineData(HttpStatusCode.NotFound)]
             [InlineData(HttpStatusCode.Unauthorized)]
@@ -133,11 +119,24 @@ namespace Wormhole.Tests.LogicTests
                 Assert.Equal(1, result.ItemsFailed);
             }
 
+            [Fact]
+            public void Process_FailedMoreThanRetryCount_FailAndNoRetry()
+            {
+                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+                var failCount = retryConfiguration.Count;
+                _step.FailCount = failCount;
+                _stubHttp.Stub(x => x.Post("/endpoint"))
+                    .Return("")
+                    .WithStatus(HttpStatusCode.BadGateway);
+                _processor.Initialize(_jobData, _nebulaContext);
+                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
+                Assert.Equal(failCount + 1, result.ItemsFailed);
+                Assert.Equal(0, result.ItemsRequeued);
+            }
         }
 
         public class ProcessorGeneralTests : HttpOutgoingQueueProcessorTests
         {
-
             public ProcessorGeneralTests()
             {
                 Options = Microsoft.Extensions.Options.Options.Create(

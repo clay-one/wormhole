@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Wormhole.Integration.Tests
+namespace Wormhole.Integration.Tests.Base
 {
     public class TestFixture : IDisposable
     {
