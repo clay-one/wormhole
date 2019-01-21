@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{542CB503
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Tests", "tests\Wormhole.Tests\Wormhole.Tests.csproj", "{4DD9C152-5B7E-4B2E-9992-A31F238D30AE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Integration.Tests", "Wormhole.Worker.Tests\Wormhole.Integration.Tests.csproj", "{E9DD9AFE-658A-4B4E-8CD3-CFD2E0B903E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Integration.Tests", "tests\Wormhole.Integration.Tests\Wormhole.Integration.Tests.csproj", "{E9DD9AFE-658A-4B4E-8CD3-CFD2E0B903E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

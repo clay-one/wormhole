@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Wormhole.Worker\Wormhole.Worker.csproj" />
+    <ProjectReference Include="..\..\src\Wormhole.Worker\Wormhole.Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>
