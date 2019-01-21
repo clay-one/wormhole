@@ -1,6 +1,4 @@
-﻿using System.Net;
-using System.Security.Authentication;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NLog.Web;
 
@@ -17,12 +15,8 @@ namespace Wormhole.Api
         {
             return WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseKestrel((context, options) =>
-                {
-                    options.Configure(context.Configuration.GetSection("Kestrel"));
-                })
-
-                    .UseNLog();
+                .UseKestrel((context, options) => { options.Configure(context.Configuration.GetSection("Kestrel")); })
+                .UseNLog();
         }
     }
 }
