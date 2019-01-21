@@ -101,8 +101,8 @@ namespace Wormhole.Worker
                             $"Wormhole_{outputChannel.JobId}",
                             configuration: new JobConfigurationData
                             {
-                                MaxBatchSize = 1,
-                                MaxConcurrentBatchesPerWorker = 5,
+                                MaxBatchSize = 128,
+                                MaxConcurrentBatchesPerWorker = 8,
                                 IdleSecondsToCompletion = 30,
                                 MaxBlockedSecondsPerCycle = 60,
                                 MaxTargetQueueLength = 100000,
@@ -111,8 +111,9 @@ namespace Wormhole.Worker
                                 IsIndefinite = true
                             }, jobId: $"Wormhole_{outputChannel.ExternalKey}");
                     await _outputChannelDa.SetJobId(outputChannel.Id.ToString(), outputChannel.JobId);
-                    await _nebulaContext.GetJobManager().StartJob("Fanap-plus", outputChannel.JobId);
                 }
+                await _nebulaContext.GetJobManager().StartJobIfNotStarted("Fanap-plus", outputChannel.JobId);
+
             }
         }
     }

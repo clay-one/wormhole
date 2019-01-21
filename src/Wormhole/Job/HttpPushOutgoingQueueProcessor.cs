@@ -21,15 +21,16 @@ namespace Wormhole.Job
 {
     public class HttpPushOutgoingQueueProcessor : IJobProcessor<HttpPushOutgoingQueueStep>
     {
+        private static readonly List<HttpStatusCode> RetriableHttpResponses = new List<HttpStatusCode>
+        {
+            HttpStatusCode.BadGateway,HttpStatusCode.GatewayTimeout,HttpStatusCode.ServiceUnavailable
+        };
+
         private readonly HttpClient _httpClient;
         private readonly RetryConfiguration _retryConfig;
         private string _jobId;
         private IDelayedJobQueue<HttpPushOutgoingQueueStep> _jobQueue;
         private HttpPushOutgoingQueueParameters _parameters;
-        private static readonly List<HttpStatusCode> RetriableHttpResponses = new List<HttpStatusCode>()
-        {
-            HttpStatusCode.BadGateway,HttpStatusCode.GatewayTimeout,HttpStatusCode.ServiceUnavailable
-        };
 
         public HttpPushOutgoingQueueProcessor(ILogger<HttpPushOutgoingQueueProcessor> logger,
             IMessageLogDa messageLogDa, IOptions<RetryConfiguration> options)
@@ -68,23 +69,25 @@ namespace Wormhole.Job
         public async Task<JobProcessingResult> Process(List<HttpPushOutgoingQueueStep> items)
         {
             return JobProcessingResult.Combine(
-                await Task.WhenAll(items.Select(ProcessOne).ToArray()));
+                await Task.WhenAll(items.Select(item =>
+                    SendMessage(item).ContinueWith(sendMessageOutputTask => LogMessage(sendMessageOutputTask, item)))));
         }
 
-        private async Task<JobProcessingResult> ProcessOne(HttpPushOutgoingQueueStep item)
+        private JobProcessingResult LogMessage(Task<SendMessageOutput> sendMessageOutputTask, HttpPushOutgoingQueueStep item)
         {
-            var result = new JobProcessingResult();
-            var publishResult = await SendMessage(item);
+            var jobProcessingResult = new JobProcessingResult();
+
+            var publishResult = sendMessageOutputTask.Result;
             if (publishResult.Success)
             {
-                await InsertMessageLog(item, publishResult);
-                return result;
+                InsertMessageLog(item, publishResult).GetAwaiter().GetResult();
+                return jobProcessingResult; 
             }
 
             item.FailCount += 1;
-            result.ItemsFailed = item.FailCount;
-            await InsertMessageLog(item, publishResult);
-            result.FailureMessages = new[]
+            jobProcessingResult.ItemsFailed = item.FailCount;
+            InsertMessageLog(item, publishResult).GetAwaiter().GetResult();
+            jobProcessingResult.FailureMessages = new[]
             {
                 publishResult.Error
             };
@@ -92,15 +95,15 @@ namespace Wormhole.Job
                 $"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
 
             if (!RetryPolicyMeets(publishResult.HttpResponseCode))
-                return result;
-            
+                return jobProcessingResult; 
+
             if (item.FailCount > _retryConfig.Count)
-                return result;
+                return jobProcessingResult; 
 
-            result.ItemsRequeued = item.FailCount;
-            await _jobQueue.Enqueue(item, publishResult.ResponseTime.AddMinutes(_retryConfig.Interval));
+            jobProcessingResult.ItemsRequeued = item.FailCount;
+            _jobQueue.Enqueue(item, publishResult.ResponseTime.AddMinutes(_retryConfig.Interval)).GetAwaiter().GetResult();
 
-            return result;
+            return jobProcessingResult; 
         }
 
         private bool RetryPolicyMeets(HttpStatusCode responseCode)
