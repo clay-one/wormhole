@@ -36,7 +36,7 @@ namespace Wormhole.Tests.LogicTests
 
             _parameters = new HttpPushOutgoingQueueParameters
             {
-                TargetUrl = "http://s1ghasedak10:8006/api/v2/receive/incoming"
+                TargetUrl = "http://localhost:9191/endpoint"
             };
 
             _jobConfiguration = new JobConfigurationData
@@ -142,7 +142,6 @@ namespace Wormhole.Tests.LogicTests
                     new RetryConfiguration { Count = 0, Interval = 0 });
                 _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);
                 _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
-                _parameters.TargetUrl = "http://localhost:9191/endpoint";
             }
 
             [Fact]
