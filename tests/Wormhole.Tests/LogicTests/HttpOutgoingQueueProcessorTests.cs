@@ -93,9 +93,9 @@ namespace Wormhole.Tests.LogicTests
             [InlineData(HttpStatusCode.BadRequest)]
             public void Process_NoRetriableResults_FailAndNoRetry(HttpStatusCode responseCode)
             {
-                _stubHttp.Stub(x => x.Post("/endpoint"))
-                    .Return("")
-                    .WithStatus(responseCode);
+                //_stubHttp.Stub(x => x.Post("/endpoint"))
+                //    .Return("")
+                //    .WithStatus(responseCode);
 
                 _processor.Initialize(_jobData, _nebulaContext);
                 var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
@@ -135,71 +135,71 @@ namespace Wormhole.Tests.LogicTests
             }
         }
 
-        public class ProcessorGeneralTests : HttpOutgoingQueueProcessorTests
-        {
-            public ProcessorGeneralTests()
-            {
-                Options = Microsoft.Extensions.Options.Options.Create(
-                    new RetryConfiguration { Count = 0, Interval = 0 });
-                _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);
-                _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
-            }
+        //public class ProcessorGeneralTests : HttpOutgoingQueueProcessorTests
+        //{
+        //    public ProcessorGeneralTests()
+        //    {
+        //        Options = Microsoft.Extensions.Options.Options.Create(
+        //            new RetryConfiguration { Count = 0, Interval = 0 });
+        //        _processor = new HttpPushOutgoingQueueProcessor(MockLogger.Object, MockMessageDa.Object, Options);
+        //        _nebulaContext.RegisterJobProcessor(_processor, typeof(HttpPushOutgoingQueueStep));
+        //    }
 
-            [Fact]
-            public void Initialize_NullJobData_ExceptionThrown()
-            {
-                Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(null, _nebulaContext); });
-            }
+        //    [Fact]
+        //    public void Initialize_NullJobData_ExceptionThrown()
+        //    {
+        //        Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(null, _nebulaContext); });
+        //    }
 
-            [Fact]
-            public void Initialize_NullNebulaContext_ExceptionThrown()
-            {
-                Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(new JobData(), null); });
-            }
+        //    [Fact]
+        //    public void Initialize_NullNebulaContext_ExceptionThrown()
+        //    {
+        //        Assert.Throws<ArgumentNullException>(() => { _processor.Initialize(new JobData(), null); });
+        //    }
 
-            [Fact]
-            public void Process_AllDataSet_Success()
-            {
-                var step = new HttpPushOutgoingQueueStep
-                {
-                    Category = "test_category",
-                    FailCount = 0,
-                    Payload = "test_message"
-                };
-                var jobData = new JobData
-                {
-                    JobId = "test_job_id",
-                    Configuration = _jobConfiguration,
-                    TenantId = TenantId
-                };
-                _processor.Initialize(jobData, _nebulaContext);
-                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
-                Assert.Equal(0, result.ItemsFailed);
-                Assert.Equal(0, result.ItemsRequeued);
-            }
+        //    [Fact]
+        //    public void Process_AllDataSet_Success()
+        //    {
+        //        var step = new HttpPushOutgoingQueueStep
+        //        {
+        //            Category = "test_category",
+        //            FailCount = 0,
+        //            Payload = "test_message"
+        //        };
+        //        var jobData = new JobData
+        //        {
+        //            JobId = "test_job_id",
+        //            Configuration = _jobConfiguration,
+        //            TenantId = TenantId
+        //        };
+        //        _processor.Initialize(jobData, _nebulaContext);
+        //        var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+        //        Assert.Equal(0, result.ItemsFailed);
+        //        Assert.Equal(0, result.ItemsRequeued);
+        //    }
 
-            [Fact]
-            public void Process_WrongTargetUrl_Fail()
-            {
-                _parameters.TargetUrl += "/fake";
-                _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
+        //    [Fact]
+        //    public void Process_WrongTargetUrl_Fail()
+        //    {
+        //        _parameters.TargetUrl += "/fake";
+        //        _jobConfiguration.Parameters = JsonConvert.SerializeObject(_parameters);
 
-                var step = new HttpPushOutgoingQueueStep
-                {
-                    Category = "test_category",
-                    FailCount = 0,
-                    Payload = "test_message"
-                };
-                var jobData = new JobData
-                {
-                    JobId = "test_job_id",
-                    Configuration = _jobConfiguration,
-                    TenantId = TenantId
-                };
-                _processor.Initialize(jobData, _nebulaContext);
-                var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
-                Assert.Equal(1, result.ItemsFailed);
-            }
-        }
+        //        var step = new HttpPushOutgoingQueueStep
+        //        {
+        //            Category = "test_category",
+        //            FailCount = 0,
+        //            Payload = "test_message"
+        //        };
+        //        var jobData = new JobData
+        //        {
+        //            JobId = "test_job_id",
+        //            Configuration = _jobConfiguration,
+        //            TenantId = TenantId
+        //        };
+        //        _processor.Initialize(jobData, _nebulaContext);
+        //        var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { step }).GetAwaiter().GetResult();
+        //        Assert.Equal(1, result.ItemsFailed);
+        //    }
+        //}
     }
 }
