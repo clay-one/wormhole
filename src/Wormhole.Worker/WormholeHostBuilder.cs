@@ -87,7 +87,7 @@ namespace Wormhole.Worker
                 .Configure<ConnectionStringsConfig>(config.GetSection(Constants.ConnectionStringsConfigSection));
         }
 
-        private string GetNlogConfigFileName(HostBuilderContext hostContext)
+        private static string GetNlogConfigFileName(HostBuilderContext hostContext)
         {
             const string rootConfigFile = "nlog.config";
             var configFile = rootConfigFile;

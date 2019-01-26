@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Nebula;
 using Nebula.Queue.Implementation;
 using Newtonsoft.Json;
 using Wormhole.Api.Model;
@@ -13,7 +12,7 @@ using Wormhole.Kafka;
 
 namespace Wormhole.Worker
 {
-    public class HttpPushOutgoingMessageConsumer : KafkaConsumer, IDisposable
+    public class HttpPushOutgoingMessageConsumer : KafkaConsumer
     {
         private readonly ILogger _logger;
         private readonly NebulaService _nebulaService;
