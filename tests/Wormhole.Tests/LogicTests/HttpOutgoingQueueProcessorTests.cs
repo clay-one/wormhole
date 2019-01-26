@@ -18,13 +18,12 @@ namespace Wormhole.Tests.LogicTests
     public class HttpOutgoingQueueProcessorTests
     {
         protected const string TenantId = "test_tenant";
-        protected const int Score = 100;
         protected readonly JobConfigurationData JobConfiguration;
         protected readonly NebulaContext NebulaContext;
         protected readonly HttpPushOutgoingQueueParameters Parameters;
         protected IJobProcessor<HttpPushOutgoingQueueStep> Processor;
         protected readonly IHttpServer StubHttp;
-        private static int _portNumber= 9090;
+        private static int _portNumber= 9091;
         protected readonly JobData JobData;
 
         public HttpOutgoingQueueProcessorTests()
