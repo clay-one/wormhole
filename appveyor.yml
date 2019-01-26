@@ -18,8 +18,4 @@ build:
 test:
   assemblies:
     only:
-      - Test.dll
-
-  categories:
-    except:
-      - localTest
+      - Wormhole.Tests.dll
