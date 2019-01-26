@@ -19,7 +19,3 @@ test:
   assemblies:
     only:
       - Wormhole.Tests.dll
-
-  categories:
-    except:
-      - localTest
