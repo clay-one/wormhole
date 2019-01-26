@@ -24,7 +24,7 @@ namespace Wormhole.Tests.LogicTests
         protected readonly HttpPushOutgoingQueueParameters Parameters;
         protected IJobProcessor<HttpPushOutgoingQueueStep> Processor;
         protected readonly IHttpServer StubHttp;
-        private static int _portNumber= new Random().Next(9090,65000);
+        private static int _portNumber= 9090;
         protected readonly JobData JobData;
 
         public HttpOutgoingQueueProcessorTests()
