@@ -17,5 +17,5 @@ build:
   verbosity: minimal
 test:
   assemblies:
-    only:
-      - Wormhole.Tests.dll
+    except:
+      - Wormhole.Integration.Tests.dll
