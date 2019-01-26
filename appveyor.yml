@@ -10,7 +10,7 @@ dotnet_csproj:
   file_version: '{version}'
   informational_version: '{version}'
 before_build:
-- cmd: nuget restore src\Wormhole.sln
+- cmd: nuget restore Wormhole.sln
 build:
   publish_nuget: true
   publish_nuget_symbols: true
