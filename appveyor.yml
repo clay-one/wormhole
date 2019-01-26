@@ -14,8 +14,12 @@ before_build:
 build:
   publish_nuget: true
   publish_nuget_symbols: true
-  verbosity: normal
+  verbosity: minimal
 test:
   assemblies:
+    only:
+      - Wormhole.Tests.dll
+
+  categories:
     except:
-      - 'Wormhole.Integration.Tests.dll'
+      - localTest
