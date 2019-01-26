@@ -93,9 +93,9 @@ namespace Wormhole.Tests.LogicTests
             [InlineData(HttpStatusCode.BadRequest)]
             public void Process_NoRetriableResults_FailAndNoRetry(HttpStatusCode responseCode)
             {
-                //_stubHttp.Stub(x => x.Post("/endpoint"))
-                //    .Return("")
-                //    .WithStatus(responseCode);
+                _stubHttp.Stub(x => x.Post("/endpoint"))
+                    .Return("")
+                    .WithStatus(responseCode);
 
                 _processor.Initialize(_jobData, _nebulaContext);
                 var result = _processor.Process(new List<HttpPushOutgoingQueueStep> { _step }).GetAwaiter().GetResult();
