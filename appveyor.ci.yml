@@ -10,7 +10,11 @@ dotnet_csproj:
   file_version: '{version}'
   informational_version: '{version}'
 before_build:
-- cmd: nuget restore Wormhole.sln
+# Display .NET Core version
+  - cmd: dotnet --version
+  # Display minimal restore text
+  - cmd: dotnet restore ./src/src.csproj --verbosity m
+#- cmd: nuget restore Wormhole.sln
 build_script:
   # output will be in ./src/bin/debug/netcoreapp1.1/publish
   - cmd: dotnet publish -c Release ./src/Wormhole.Api/Wormhole.Api.csproj
