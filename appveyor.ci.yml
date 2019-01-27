@@ -11,8 +11,17 @@ dotnet_csproj:
   informational_version: '{version}'
 before_build:
 - cmd: nuget restore Wormhole.sln
-build:
-  publish_nuget: true
-  publish_nuget_symbols: true
-  verbosity: minimal
+build_script:
+  # output will be in ./src/bin/debug/netcoreapp1.1/publish
+  - cmd: dotnet publish -c Release ./src/Wormhole.Api/Wormhole.Api.csproj
+after_build:
+  # For once the build has completed
+artifacts:
+ - path: '\src\bin\Debug\netcoreapp2.2\publish'
+   name: WebSite
+   type: WebDeployPackage
+clone_depth: 1
 test: off
+on_finish :
+  # any cleanup in here
+deploy: off
