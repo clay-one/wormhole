@@ -15,6 +15,8 @@ Set-Location $slnFolder
 dotnet restore
 
 ## BUILD SOLUTION #############################################################
-dotnet build
+dotnet publish --configuration Release --output (Join-Path $outputFolder "Host")
 
-Set-Location $outputFolder 
+$hostOutputFolder = (Join-Path $outputFolder "Host")
+
+Set-Location $outputFolder
