@@ -2,7 +2,7 @@
 $buildFolder = (Get-Item -Path "./" -Verbose).FullName
 $slnFolder = Join-Path $buildFolder "../"
 $outputFolder = Join-Path $buildFolder "outputs"
-$webHostFolder = Join-Path $slnFolder "src/Wormhole.Api"
+$webHostFolder = Join-Path $buildFolder  "src/Wormhole.Api"
 
 ## CLEAR ######################################################################
 
@@ -11,7 +11,7 @@ New-Item -Path $outputFolder -ItemType Directory
 
 ## RESTORE NUGET PACKAGES #####################################################
 
-Set-Location $slnFolder
+Set-Location $webHostFolder
 dotnet restore
 
 ## BUILD SOLUTION #############################################################
