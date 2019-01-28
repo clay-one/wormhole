@@ -19,10 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Tests", "tests\Wor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Integration.Tests", "tests\Wormhole.Integration.Tests\Wormhole.Integration.Tests.csproj", "{D864F62A-DA62-4487-AFB8-E9002E32AFA8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{09730E54-7551-4D09-96DC-2529AA5307B3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{03C33371-8828-4791-ADDB-BE64A11802FF}"
 	ProjectSection(SolutionItems) = preProject
-		build-wormhole-api.ps1 = build-wormhole-api.ps1
-		run-unit-tests.ps1 = run-unit-tests.ps1
+		build\build-wormhole-api.ps1 = build\build-wormhole-api.ps1
+		build\run-unit-tests.ps1 = build\run-unit-tests.ps1
 	EndProjectSection
 EndProject
 Global
