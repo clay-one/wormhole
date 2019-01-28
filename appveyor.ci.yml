@@ -1,0 +1,31 @@
+version: 0.0.{build}
+skip_tags: true
+image: Visual Studio 2017
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+before_build:
+# Display .NET Core version
+  - cmd: dotnet --version
+  # Display minimal restore text
+  - cmd: dotnet restore ./src/Wormhole.Api/Wormhole.Api.csproj --verbosity m
+#- cmd: nuget restore Wormhole.sln
+build_script:
+  # output will be in ./src/bin/debug/netcoreapp1.1/publish
+  - cmd: dotnet publish -c Release ./src/Wormhole.Api/Wormhole.Api.csproj
+after_build:
+  # For once the build has completed
+artifacts:
+ - path: '\src\Wormhole.Api\bin\Release\netcoreapp2.2\publish'
+   name: WebSite
+   type: WebDeployPackage
+clone_depth: 1
+test: off
+on_finish :
+  # any cleanup in here
+deploy: off
