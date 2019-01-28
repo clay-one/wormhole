@@ -13,7 +13,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Wormhole.Api.Model\Wormhole.Api.Model.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    
-  </ItemGroup>
 </Project>
