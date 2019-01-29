@@ -5,6 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Deployment\remove-temp.sh" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Deployment\remove-temp.sh" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
