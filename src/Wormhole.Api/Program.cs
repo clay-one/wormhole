@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using NLog.Web;
 
 namespace Wormhole.Api
@@ -15,7 +16,14 @@ namespace Wormhole.Api
         {
             return WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseKestrel((context, options) => { options.Configure(context.Configuration.GetSection("Kestrel")); })
+                .UseKestrel((context, options) =>
+                {
+                    options.Configure(context.Configuration.GetSection("Kestrel"));
+                    options.ConfigureHttpsDefaults(httpConfigOptions =>
+                        {
+                            httpConfigOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
+                        });
+                })
                 .UseNLog();
         }
     }
