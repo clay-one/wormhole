@@ -1,7 +1,5 @@
-﻿using System;
-using System.Linq.Expressions;
-using AutoMapper;
-using Wormhole.Api.Model;
+﻿using AutoMapper;
+using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DomainModel;
 
 namespace Wormhole.Mapping.Profile
@@ -12,8 +10,8 @@ namespace Wormhole.Mapping.Profile
 
         public OutputChannelAddRequestProfile()
         {
-            Expression = CreateMap<TSource,OutputChannel>().ForMember(d => d.FilterCriteria,
-                opt => opt.MapFrom(src => new MessageFilterCriteria { Category = src.Category, Tag = src.Tag}));
+            Expression = CreateMap<TSource, OutputChannel>().ForMember(d => d.FilterCriteria,
+                opt => opt.MapFrom(src => new MessageFilterCriteria { Category = src.Category, Tag = src.Tag }));
         }
 
     }

@@ -1,4 +1,4 @@
-﻿using Wormhole.Api.Model;
+﻿using Wormhole.Api.Model.InputChannels;
 using Wormhole.DomainModel;
 
 namespace Wormhole.Mapping.Profile
@@ -7,7 +7,7 @@ namespace Wormhole.Mapping.Profile
     {
         public InputChannelAddRequestProfile()
         {
-            CreateMap<HttpPushInputputChannelAddRequest, InputChannel>();
+            CreateMap<InputChannelAddRequest, InputChannel>();
         }
     }
 }

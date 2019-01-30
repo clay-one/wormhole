@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.Publish;
 using Wormhole.DTO;
 using Wormhole.Interface;
 using Wormhole.Kafka;

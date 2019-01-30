@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nebula.Queue.Implementation;
 using Newtonsoft.Json;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.Publish;
 using Wormhole.Configurations;
 using Wormhole.Job;
 using Wormhole.Kafka;

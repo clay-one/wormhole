@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Wormhole.Api.Model
+namespace Wormhole.Api.Model.InputChannels
 {
-    public class HttpPushInputputChannelAddRequest
+    public class InputChannelAddRequest
     {
         [Required]
         [MaxLength(Constants.ExternalKeyMaxLength)]
@@ -13,5 +13,8 @@ namespace Wormhole.Api.Model
         [MaxLength(Constants.TenantIdMaxLength)]
         [RegularExpression(Constants.TenantIdRegex)]
         public string TenantId { get; set; }
+      
+        public ChannelType ChannelType { get; set; }
+        public InputChannelSpecification TypeSpecification { get; set; }
     }
 }

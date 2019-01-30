@@ -1,6 +1,6 @@
-﻿namespace Wormhole.Api.Model
+﻿namespace Wormhole.Api.Model.Tenant
 {
-    public class AddTenantRequest
+    public class AddTenantResponse
     {
         public string Name { get; set; }
         public string Identifier { get; set; }

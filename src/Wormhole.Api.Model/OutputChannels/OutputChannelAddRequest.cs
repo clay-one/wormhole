@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Wormhole.Api.Model
+namespace Wormhole.Api.Model.OutputChannels
 {
     public class OutputChannelAddRequest
     {

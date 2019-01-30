@@ -5,7 +5,7 @@ using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.Publish;
 using Wormhole.Configurations;
 
 namespace Wormhole.Kafka

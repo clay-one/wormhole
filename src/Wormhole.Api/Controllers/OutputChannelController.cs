@@ -2,7 +2,7 @@
 using hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
 
