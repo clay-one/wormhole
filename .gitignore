@@ -334,3 +334,4 @@ ASALocalRun/
 *.DotSettings
 /.sonarqube
 /build/outputs/Host
+/build/outputs/Worker

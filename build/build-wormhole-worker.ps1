@@ -1,8 +1,8 @@
 # COMMON PATHS
 $buildFolder = (Get-Item -Path "./" -Verbose).FullName
 $outputFolder = Join-Path $buildFolder "outputs"
-$webHostFolder = Join-Path $buildFolder "../src/Wormhole.Api"
-$hostOutputFolder = Join-Path $outputFolder "Host"
+$workerFolder = Join-Path $buildFolder "../src/Wormhole.Worker"
+$workerOutputFolder = Join-Path $outputFolder "Worker"
 
 ## CLEAR ######################################################################
 
@@ -11,13 +11,13 @@ New-Item -Path $outputFolder -ItemType Directory
 
 ## RESTORE NUGET PACKAGES #####################################################
 
-Set-Location $webHostFolder
+Set-Location $workerFolder
 dotnet restore
 
 ## BUILD SOLUTION #############################################################
  
  'publish source from ' + (get-location) + '> '
-dotnet publish --configuration Release --output $hostOutputFolder
+dotnet publish --configuration Release --output $workerOutputFolder
 
 
-Set-Location $hostOutputFolder
+Set-Location $workerOutputFolder

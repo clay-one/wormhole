@@ -22,6 +22,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{03C33371-8828-4791-ADDB-BE64A11802FF}"
 	ProjectSection(SolutionItems) = preProject
 		build\build-wormhole-api.ps1 = build\build-wormhole-api.ps1
+		build\build-wormhole-worker.ps1 = build\build-wormhole-worker.ps1
 		build\run-unit-tests.ps1 = build\run-unit-tests.ps1
 	EndProjectSection
 EndProject
