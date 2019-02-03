@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Nebula.Queue;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
@@ -74,13 +73,13 @@ namespace Wormhole.Worker
         {
             var config = hostContext.Configuration;
             collection
+                .AddSingleton<IMongoUtil, MongoUtil>()
                 .AddSingleton<ITenantDa, TenantDa>()
                 .AddSingleton<IOutputChannelDa, OutputChannelDa>()
                 .AddSingleton<IMessageLogDa, MessageLogDa>()
-                .AddSingleton<NebulaService>()
                 //.AddTransient<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
                 .AddTransient<HttpPushOutgoingQueueProcessor>()
-                .AddSingleton<IMongoUtil, MongoUtil>()
+                .AddSingleton<NebulaService>()
                 .AddHostedService<ConsumerHostedService>()
                 .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
                 .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))
