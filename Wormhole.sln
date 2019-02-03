@@ -17,9 +17,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{542CB503
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Tests", "tests\Wormhole.Tests\Wormhole.Tests.csproj", "{4DD9C152-5B7E-4B2E-9992-A31F238D30AE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Integration.Tests", "tests\Wormhole.Integration.Tests\Wormhole.Integration.Tests.csproj", "{E9DD9AFE-658A-4B4E-8CD3-CFD2E0B903E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.Integration.Tests", "tests\Wormhole.Integration.Tests\Wormhole.Integration.Tests.csproj", "{D864F62A-DA62-4487-AFB8-E9002E32AFA8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wormhole.InputChannels.Kafka.Consumer", "src\Wormhole.InputChannels.Kafka.Consumer\Wormhole.InputChannels.Kafka.Consumer.csproj", "{83586C5D-50E0-4C52-8635-413B9361D643}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{03C33371-8828-4791-ADDB-BE64A11802FF}"
+	ProjectSection(SolutionItems) = preProject
+		build\build-wormhole-api.ps1 = build\build-wormhole-api.ps1
+		build\build-wormhole-worker.ps1 = build\build-wormhole-worker.ps1
+		build\run-unit-tests.ps1 = build\run-unit-tests.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +62,10 @@ Global
 		{83586C5D-50E0-4C52-8635-413B9361D643}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83586C5D-50E0-4C52-8635-413B9361D643}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83586C5D-50E0-4C52-8635-413B9361D643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D864F62A-DA62-4487-AFB8-E9002E32AFA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D864F62A-DA62-4487-AFB8-E9002E32AFA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D864F62A-DA62-4487-AFB8-E9002E32AFA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D864F62A-DA62-4487-AFB8-E9002E32AFA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +78,7 @@ Global
 		{4DD9C152-5B7E-4B2E-9992-A31F238D30AE} = {542CB503-B86E-497E-846F-98C8681A1D43}
 		{E9DD9AFE-658A-4B4E-8CD3-CFD2E0B903E5} = {542CB503-B86E-497E-846F-98C8681A1D43}
 		{83586C5D-50E0-4C52-8635-413B9361D643} = {1368228D-A16A-48B5-B73C-2FCF2C243523}
+		{D864F62A-DA62-4487-AFB8-E9002E32AFA8} = {542CB503-B86E-497E-846F-98C8681A1D43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EEA8EC68-F66A-428E-AE58-417D632F8496}

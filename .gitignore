@@ -333,3 +333,5 @@ ASALocalRun/
 .mfractor/
 *.DotSettings
 /.sonarqube
+/build/outputs/Host
+/build/outputs/Worker
