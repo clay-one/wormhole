@@ -8,6 +8,7 @@ using NLog.Config;
 using NLog.Extensions.Logging;
 using Wormhole.Configurations;
 using Wormhole.Interface;
+using Wormhole.Kafka;
 using Wormhole.Logic;
 using Wormhole.Utils;
 
@@ -74,6 +75,7 @@ namespace Wormhole.InputChannels.Kafka.Consumer
             var config = hostContext.Configuration;
             collection
                 .AddSingleton<IPublishMessageLogic, PublishMessageLogic>()
+                .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddHostedService<ConsumerHostedService>()
                 .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection));
         }
