@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Wormhole.DTO.Identity;
 
 namespace Wormhole.Logic
@@ -30,17 +31,9 @@ namespace Wormhole.Logic
 
                 Logger.LogDebug($"IdentityLogic_GetApplicationPoliciesAsync: Identity response: {apiResponse}");
 
-                var result = await apiResponse.Content.ReadAsAsync<IdentityResponse>();
-
-                return new IdentityResponse
-                {
-                    Success = result.Success,
-                    Result = new GetApplicationPoliciesResult
-                    {
-                        Policies = result.Result.Policies,
-                        TenantIdentifier = result.Result.TenantIdentifier
-                    }
-                };
+                var stringifiedResult = await apiResponse.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<IdentityResponse>(stringifiedResult);
+                return result;
             }
             catch (Exception ex)
             {

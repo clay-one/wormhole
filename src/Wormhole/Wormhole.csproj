@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ClayOne.Hydrogen.AutoMapper" Version="0.0.16" />
-    <PackageReference Include="ClayOne.Nebula" Version="2.0.0" />
+    <PackageReference Include="ClayOne.Nebula" Version="2.0.1" />
     <PackageReference Include="Confluent.Kafka" Version="0.11.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="2.2.0" />
