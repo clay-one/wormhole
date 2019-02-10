@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -12,6 +11,10 @@ namespace Wormhole.Api.Attributes
     public class ClientAuthenticationAttribute : ActionFilterAttribute
     {
         private const string IdentityAppIdKey = "Appson-Identity-App-Id";
+        private const string ClientCertKey = "X-SSL-Client-Cert";
+        private const string ClientVerifyKey = "X-SSL-Client-Verify";
+        private const string ClientSh1Key = "X-SSL-Client-SHA1";
+        private const string ClientCnKey = "X-SSL-Client-CN";
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
@@ -24,8 +27,8 @@ namespace Wormhole.Api.Attributes
 
             else
             {
-                context.HttpContext.Response.StatusCode = 403;
-                await context.HttpContext.Response.WriteAsync("Application is not authenticated.");
+                httpContext.Response.StatusCode = 403;
+                await httpContext.Response.WriteAsync("Application is not authenticated.");
             }
         }
 
@@ -64,17 +67,27 @@ namespace Wormhole.Api.Attributes
 
         private bool IsCertificateValid(string commonName, HttpContext httpContext)
         {
-            var certificate = httpContext.Connection.ClientCertificate;
+            var headers = httpContext.Request.Headers;
 
-            if (certificate == null)
+            if (headers.Keys.Contains(ClientCertKey) && headers.Keys.Contains(ClientVerifyKey) &&
+                headers.Keys.Contains(ClientSh1Key) && headers.Keys.Contains(ClientCnKey))
+            {
+                var clientCertValue = headers[ClientCertKey];
+                var clientVerifyValue = headers[ClientVerifyKey];
+                var clientSh1Value = headers[ClientSh1Key];
+                var clientCnValue = headers[ClientCnKey];
+
+                if (clientCertValue == "1" && clientVerifyValue == "0" && !string.IsNullOrWhiteSpace(clientCnValue))
+                {
+                    var isCertificateValid =
+                        commonName.Equals(clientCnValue, StringComparison.InvariantCultureIgnoreCase);
+
+                    return isCertificateValid;
+                }
+
                 return false;
-
-            var contextCertcommonName = certificate.GetNameInfo(X509NameType.SimpleName, false);
-
-            var isCertificateValid =
-                commonName.Equals(contextCertcommonName, StringComparison.InvariantCultureIgnoreCase);
-
-            return isCertificateValid;
+            }
+            return false;
         }
     }
 }
