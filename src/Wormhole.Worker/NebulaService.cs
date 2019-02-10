@@ -102,19 +102,20 @@ namespace Wormhole.Worker
                     // todo: static job might be a better choice
                     outputChannel.JobId = await _nebulaContext.GetJobManager()
                         .CreateNewJobOrUpdateDefinition<HttpPushOutgoingQueueStep>(
-                            "Fanap-plus",
-                            $"Wormhole_{outputChannel.JobId}",
+                            tenantId: "Fanap-plus",
+                            jobDisplayName: $"Wormhole_{outputChannel.JobId}",
+                            jobId: $"Wormhole_{outputChannel.ExternalKey}",
                             configuration: new JobConfigurationData
                             {
                                 MaxBatchSize = 128,
                                 MaxConcurrentBatchesPerWorker = 8,
-                                IdleSecondsToCompletion = 30,
                                 MaxBlockedSecondsPerCycle = 60,
                                 MaxTargetQueueLength = 100000,
                                 Parameters = JsonConvert.SerializeObject(parameters),
                                 QueueTypeName = QueueType.Delayed,
                                 IsIndefinite = true
-                            }, jobId: $"Wormhole_{outputChannel.ExternalKey}");
+                            });
+
                     await _outputChannelDa.SetJobId(outputChannel.Id.ToString(), outputChannel.JobId);
                 }
                 await _nebulaContext.GetJobManager().StartJobIfNotStarted("Fanap-plus", outputChannel.JobId);

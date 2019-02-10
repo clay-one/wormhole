@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-using HttpMock;
+﻿using HttpMock;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -8,6 +6,7 @@ using Nebula;
 using Nebula.Queue;
 using Nebula.Storage.Model;
 using Newtonsoft.Json;
+using System.Threading;
 using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
