@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Wormhole.Api.Model;
+﻿using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DomainModel;
 
 namespace Wormhole.Mapping.Profile
@@ -8,7 +7,7 @@ namespace Wormhole.Mapping.Profile
     {
         public KafkaOutputChannelAddRequestProfile()
         {
-            Expression.ForMember(d => d.ChannelType, opt => opt.UseValue(ChannelType.Kafka)).ForMember(
+            Expression.ForMember(d => d.ChannelType, opt => opt.UseValue(DomainModel.ChannelType.Kafka)).ForMember(
                     d => d.TypeSpecification,
                     opt => opt.MapFrom(src =>
                     

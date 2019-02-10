@@ -1,4 +1,4 @@
-﻿namespace Wormhole.Api.Model
+﻿namespace Wormhole.Api.Model.OutputChannels
 {
     public class HttpPushOutputChannelAddResponse : OutputChannelAddResponse
     {

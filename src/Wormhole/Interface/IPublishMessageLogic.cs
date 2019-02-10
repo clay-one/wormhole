@@ -1,7 +1,5 @@
-﻿using System.Threading.Tasks;
-using Wormhole.Api.Model;
+﻿using Wormhole.Api.Model.Publish;
 using Wormhole.DTO;
-using Wormhole.Job;
 
 namespace Wormhole.Interface
 {

@@ -1,4 +1,4 @@
-﻿namespace Wormhole.DomainModel
+﻿namespace Wormhole.Api.Model
 {
     public enum ChannelType
     {

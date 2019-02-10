@@ -1,4 +1,4 @@
-﻿using Wormhole.Api.Model;
+﻿using Wormhole.Api.Model.InputChannels;
 using Wormhole.DomainModel;
 
 namespace Wormhole.Mapping.Profile

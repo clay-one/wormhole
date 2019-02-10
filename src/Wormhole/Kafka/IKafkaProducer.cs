@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.Publish;
 
 namespace Wormhole.Kafka
 {

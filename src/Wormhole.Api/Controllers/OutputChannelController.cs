@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using hydrogen.General.Validation;
+using Hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
 

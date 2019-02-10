@@ -1,8 +1,8 @@
-﻿using hydrogen.General.Validation;
+﻿using Hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Attributes;
-using Wormhole.Api.Model;
+using Wormhole.Api.Model.Publish;
 using Wormhole.Interface;
 
 namespace Wormhole.Api.Controllers

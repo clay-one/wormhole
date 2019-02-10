@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using hydrogen.General.Collections;
+using Hydrogen.General.Collections;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Nebula;
 using Nebula.Queue;
 using Nebula.Queue.Implementation;
@@ -19,19 +20,21 @@ namespace Wormhole.Worker
 {
     public class NebulaService
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly IOutputChannelDa _outputChannelDa;
         private readonly NebulaContext _nebulaContext;
-        private readonly List<OutputChannel> OutputChannels = new List<OutputChannel>();
+        private readonly List<OutputChannel> _outputChannels = new List<OutputChannel>();
 
         public NebulaContext NebulaContext => _nebulaContext;
 
-        public NebulaService(IOptions<NebulaConfig> options, IJobProcessor<HttpPushOutgoingQueueStep> jobProcessor,
+        public NebulaService(IOptions<NebulaConfig> options, IServiceProvider serviceProvider,
             IOutputChannelDa outputChannelDa)
         {
             var nebulaConfig = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _serviceProvider = serviceProvider;
             _outputChannelDa = outputChannelDa;
             _nebulaContext = new NebulaContext();
-            ConfigureNebulaContext(jobProcessor, nebulaConfig);
+            ConfigureNebulaContext(nebulaConfig);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -52,7 +55,7 @@ namespace Wormhole.Worker
             var list = new List<KeyValuePair<string, string>>();
             foreach (var tag in tags)
             {
-                list.Add(OutputChannels.Where(o =>
+                list.Add(_outputChannels.Where(o =>
                         o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
                     .Select(o => new KeyValuePair<string, string>(o.JobId, o.FilterCriteria.Tag)).FirstOrDefault());
             }
@@ -60,21 +63,23 @@ namespace Wormhole.Worker
             return list;
         }
 
-        private void ConfigureNebulaContext(IJobProcessor<HttpPushOutgoingQueueStep> jobProcessor,
-            NebulaConfig nebulaConfig)
+        private void ConfigureNebulaContext(NebulaConfig nebulaConfig)
         {
             _nebulaContext.MongoConnectionString = nebulaConfig.MongoConnectionString;
             _nebulaContext.RedisConnectionString = nebulaConfig.RedisConnectionString;
 
             _nebulaContext.RegisterJobQueue(typeof(DelayedJobQueue<>), QueueType.Delayed);
 
-            _nebulaContext.RegisterJobProcessor(jobProcessor, typeof(HttpPushOutgoingQueueStep));
+            // registered HttpPushOutgoingQueueProcessor in host builder instead of IJobProcessor<HttpPushOutgoingQueueStep>
+            _nebulaContext.RegisterJobProcessor(
+                () => _serviceProvider.GetService<HttpPushOutgoingQueueProcessor>(),
+                typeof(HttpPushOutgoingQueueStep));
         }
 
         private async Task StartJobs()
         {
-            OutputChannels.AddAll(await GetOutputChannels());
-            await CreateHttpPushOutgoingQueueJobsAsync(OutputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
+            _outputChannels.AddAll(await GetOutputChannels());
+            await CreateHttpPushOutgoingQueueJobsAsync(_outputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
                 .ToList());
         }
 
@@ -97,19 +102,20 @@ namespace Wormhole.Worker
                     // todo: static job might be a better choice
                     outputChannel.JobId = await _nebulaContext.GetJobManager()
                         .CreateNewJobOrUpdateDefinition<HttpPushOutgoingQueueStep>(
-                            "Fanap-plus",
-                            $"Wormhole_{outputChannel.JobId}",
+                            tenantId: "Fanap-plus",
+                            jobDisplayName: $"Wormhole_{outputChannel.JobId}",
+                            jobId: $"Wormhole_{outputChannel.ExternalKey}",
                             configuration: new JobConfigurationData
                             {
                                 MaxBatchSize = 128,
                                 MaxConcurrentBatchesPerWorker = 8,
-                                IdleSecondsToCompletion = 30,
                                 MaxBlockedSecondsPerCycle = 60,
                                 MaxTargetQueueLength = 100000,
                                 Parameters = JsonConvert.SerializeObject(parameters),
                                 QueueTypeName = QueueType.Delayed,
                                 IsIndefinite = true
-                            }, jobId: $"Wormhole_{outputChannel.ExternalKey}");
+                            });
+
                     await _outputChannelDa.SetJobId(outputChannel.Id.ToString(), outputChannel.JobId);
                 }
                 await _nebulaContext.GetJobManager().StartJobIfNotStarted("Fanap-plus", outputChannel.JobId);

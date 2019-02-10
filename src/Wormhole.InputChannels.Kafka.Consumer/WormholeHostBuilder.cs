@@ -7,11 +7,12 @@ using NLog;
 using NLog.Config;
 using NLog.Extensions.Logging;
 using Wormhole.Configurations;
-using Wormhole.DataImplementation;
-using Wormhole.Job;
+using Wormhole.Interface;
+using Wormhole.Kafka;
+using Wormhole.Logic;
 using Wormhole.Utils;
 
-namespace Wormhole.Worker
+namespace Wormhole.InputChannels.Kafka.Consumer
 {
     public class WormholeHostBuilder : HostBuilder
     {
@@ -31,17 +32,17 @@ namespace Wormhole.Worker
                 .Build();
         }
 
-        public virtual void ConfigureHostConfiguration(string[] args, IConfigurationBuilder hostConfigBuilder)
+        private static void ConfigureHostConfiguration(string[] args, IConfigurationBuilder hostConfigBuilder)
         {
             hostConfigBuilder.SetBasePath(Directory.GetCurrentDirectory());
-            hostConfigBuilder.AddJsonFile("hostsettings.json", true);
+            hostConfigBuilder.AddJsonFile("hostsettings.json", false);
             if (args != null && args.Length > 0)
             {
                 hostConfigBuilder.AddCommandLine(args);
             }
         }
 
-        public virtual void ConfigureAppConfiguration(string[] args, IConfigurationBuilder appConfigBuilder,
+        private static void ConfigureAppConfiguration(string[] args, IConfigurationBuilder appConfigBuilder,
             HostBuilderContext hostContext)
         {
             appConfigBuilder.AddJsonFile("appsettings.json", true);
@@ -54,7 +55,7 @@ namespace Wormhole.Worker
             }
         }
 
-        public virtual void ConfigureLogging(HostBuilderContext hostContext, ILoggingBuilder builder)
+        private static void ConfigureLogging(HostBuilderContext hostContext, ILoggingBuilder builder)
         {
             if (hostContext.HostingEnvironment.IsDevelopment())
             {
@@ -69,22 +70,14 @@ namespace Wormhole.Worker
             builder.AddNLog(new NLogProviderOptions());
         }
 
-        public virtual void ConfigureServices(HostBuilderContext hostContext, IServiceCollection collection)
+        private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection collection)
         {
             var config = hostContext.Configuration;
             collection
-                .AddSingleton<IMongoUtil, MongoUtil>()
-                .AddSingleton<ITenantDa, TenantDa>()
-                .AddSingleton<IOutputChannelDa, OutputChannelDa>()
-                .AddSingleton<IMessageLogDa, MessageLogDa>()
-                //.AddTransient<IJobProcessor<HttpPushOutgoingQueueStep>, HttpPushOutgoingQueueProcessor>()
-                .AddTransient<HttpPushOutgoingQueueProcessor>()
-                .AddSingleton<NebulaService>()
+                .AddSingleton<IPublishMessageLogic, PublishMessageLogic>()
+                .AddSingleton<IKafkaProducer, KafkaProducer>()
                 .AddHostedService<ConsumerHostedService>()
-                .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
-                .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))
-                .Configure<NebulaConfig>(config.GetSection(Constants.NebulaConfigSection))
-                .Configure<ConnectionStringsConfig>(config.GetSection(Constants.ConnectionStringsConfigSection));
+                .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection));
         }
 
         private static string GetNlogConfigFileName(HostBuilderContext hostContext)
