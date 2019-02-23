@@ -2,7 +2,7 @@
 $buildFolder = (Get-Item -Path "./" -Verbose).FullName
 $outputFolder = Join-Path $buildFolder "outputs"
 $hostFolder = Join-Path $buildFolder "../src/Wormhole.InputChannels.Kafka.Consumer"
-$hostOutputFolder = Join-Path $outputFolder "Host"
+$hostOutputFolder = Join-Path $outputFolder "kafka-input-channel"
 
 ## CLEAR ######################################################################
 
