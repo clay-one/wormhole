@@ -11,13 +11,13 @@ using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.Interface;
 using Wormhole.Kafka;
+using Wormhole.Utils;
 
 namespace Wormhole.Worker
 {
     public class EventSubscribtionHostedService : IHostedService
     {
 
-        private const string TopicName = "wormhole.events";
         private readonly ILoggerFactory _loggerFactory;
         private readonly IOptions<KafkaConfig> _options;
         private readonly NebulaService _nebulaService;
@@ -42,7 +42,7 @@ namespace Wormhole.Worker
 
         private void StartConsuming()
         {
-            var consumer = CreateConsumer(TopicName);
+            var consumer = CreateConsumer(Constants.EventSourcingTopicName);
             consumer.Start();
         }
 

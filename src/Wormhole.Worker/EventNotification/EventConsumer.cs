@@ -9,6 +9,7 @@ using Wormhole.Configurations;
 using Wormhole.DomainModel;
 using Wormhole.Interface;
 using Wormhole.Kafka;
+using Wormhole.Worker.EventNotification;
 
 namespace Wormhole.Worker
 {

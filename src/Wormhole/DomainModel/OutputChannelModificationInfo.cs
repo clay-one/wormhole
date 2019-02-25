@@ -2,8 +2,7 @@
 {
     public class OutputChannelModificationInfo
     {
-        public string ExternalKey { get; set; }
-        public string TargetUrl { get; set; }
+        public OutputChannel OutputChannel { get; set; }
         public OutputChannelModificationType ModificationType { get; set; }
     }
 
