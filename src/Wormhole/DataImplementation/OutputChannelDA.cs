@@ -27,9 +27,9 @@ namespace Wormhole.DataImplementation
             return await  OutputChannelCollection.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task SetJobId(string id, string jobId)
+        public async Task SetJobId(string externalKey, string jobId)
         {
-            var filter = Builders<OutputChannel>.Filter.Eq(nameof(OutputChannel.Id),new ObjectId(id));
+            var filter = Builders<OutputChannel>.Filter.Eq(nameof(OutputChannel.ExternalKey),externalKey);
 
             var update = Builders<OutputChannel>.Update.Set(nameof(OutputChannel.JobId), jobId);
             await OutputChannelCollection.UpdateOneAsync(filter, update);

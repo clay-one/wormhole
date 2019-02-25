@@ -81,6 +81,7 @@ namespace Wormhole.Worker
                 .AddTransient<HttpPushOutgoingQueueProcessor>()
                 .AddSingleton<NebulaService>()
                 .AddHostedService<ConsumerHostedService>()
+                .AddHostedService<EventSubscribtionHostedService>()
                 .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
                 .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))
                 .Configure<NebulaConfig>(config.GetSection(Constants.NebulaConfigSection))
