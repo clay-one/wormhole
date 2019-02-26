@@ -4,7 +4,7 @@ using Wormhole.DomainModel;
 
 namespace Wormhole.Worker.EventNotification
 {
-    public class AddOutputChannelEventSubscriber : IOutputChannelEventSubscriber
+    public class EditOutputChannelEventSubscriber : IOutputChannelEventSubscriber
     {
         public async Task Subscribe(OutputChannelModificationInfo modificationInfo, NebulaService nebulaService)
         {
@@ -12,7 +12,7 @@ namespace Wormhole.Worker.EventNotification
             if (outputChannelSpecification == null)
                 return;
 
-            nebulaService.AddInMemoryOutputChannels(modificationInfo.OutputChannel);
+            nebulaService.ModifyInMemoryOutputChannels(modificationInfo.OutputChannel);
 
             if (outputChannelSpecification is HttpPushOutputChannelSpecification channelSpecification)
                     await nebulaService.CreateOrUpdateJobAsync(channelSpecification.TargetUrl, modificationInfo.OutputChannel.ExternalKey)

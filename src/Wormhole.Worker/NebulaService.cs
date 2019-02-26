@@ -99,14 +99,14 @@ namespace Wormhole.Worker
                 var jobId = outputChannel.JobId;
                 if (string.IsNullOrWhiteSpace(jobId))
                 {
-                    jobId = await CreateJobAsync(channelSpecification?.TargetUrl, outputChannel.ExternalKey);
+                    jobId = await CreateOrUpdateJobAsync(channelSpecification?.TargetUrl, outputChannel.ExternalKey);
                 }
-                await StartJob(jobId);
+                await StartJobIfNotStarted(jobId);
             }
         }
 
 
-        public async Task<string> CreateJobAsync(string targetUrl, string outputChannelExternalKey)
+        public async Task<string> CreateOrUpdateJobAsync(string targetUrl, string outputChannelExternalKey)
         {
             var parameters = new HttpPushOutgoingQueueParameters
             {
@@ -132,28 +132,28 @@ namespace Wormhole.Worker
             return jobId;
         }
 
-        public async Task StartJob(string jobId)
+        public async Task StartJobIfNotStarted(string jobId)
         {
             await NebulaContext.GetJobManager().StartJobIfNotStarted(TenantId, jobId);
         }
-
-        internal void UpdateInMemoryOutputChannels(OutputChannel outputChannel, OutputChannelModificationType modificationType)
+        public async Task StopJob(string jobId)
         {
-            switch (modificationType)
-            {
-                case ADD:
-                    _inMemoryOutputChannels.Add(outputChannel);
-                    break;
-                case EDIT:
-                    _inMemoryOutputChannels.RemoveAll(oc => oc.ExternalKey == outputChannel.ExternalKey);
-                    _inMemoryOutputChannels.Add(outputChannel);
-                    break;
-                case DELETE:
-                    _inMemoryOutputChannels.RemoveAll(oc => oc.ExternalKey == outputChannel.ExternalKey);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(modificationType), modificationType, null);
-            }
+            await NebulaContext.GetJobManager().StopJob(TenantId, jobId);
+        }
+
+        internal void AddInMemoryOutputChannels(OutputChannel outputChannel)
+        {
+            _inMemoryOutputChannels.Add(outputChannel);
+        }
+
+        internal void ModifyInMemoryOutputChannels(OutputChannel outputChannel)
+        {
+            _inMemoryOutputChannels.RemoveAll(oc => oc.ExternalKey == outputChannel.ExternalKey);
+            _inMemoryOutputChannels.Add(outputChannel);
+        }
+        internal void RemoveInMemoryOutputChannels(OutputChannel outputChannel)
+        {
+            _inMemoryOutputChannels.RemoveAll(oc => oc.ExternalKey == outputChannel.ExternalKey);
         }
     } 
 }

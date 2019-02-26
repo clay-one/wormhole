@@ -34,7 +34,15 @@ namespace Wormhole.Worker.EventNotification
         {
             if (modificationType == OutputChannelModificationType.ADD)
             {
-                return new OutputChannelAddEventSubscriber();
+                return new AddOutputChannelEventSubscriber();
+            }
+            if (modificationType == OutputChannelModificationType.EDIT)
+            {
+                return new EditOutputChannelEventSubscriber();
+            }
+            if (modificationType == OutputChannelModificationType.DELETE)
+            {
+                return new DeleteOutputChannelEventSubscriber();
             }
 
             return null;
