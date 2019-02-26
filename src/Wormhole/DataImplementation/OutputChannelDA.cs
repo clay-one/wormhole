@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Wormhole.DomainModel;
+using Wormhole.DomainModel.OutputChannel;
 
 namespace Wormhole.DataImplementation
 {

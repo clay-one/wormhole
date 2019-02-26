@@ -2,6 +2,7 @@
 using Nebula.Storage.Model;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
+using Wormhole.DomainModel.OutputChannel;
 
 namespace Wormhole.Integration.Tests.Base
 {

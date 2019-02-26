@@ -1,15 +1,10 @@
-﻿namespace Wormhole.DomainModel
-{
-    public class OutputChannelModificationInfo
-    {
-        public OutputChannel OutputChannel { get; set; }
-        public OutputChannelModificationType ModificationType { get; set; }
-    }
+﻿using Wormhole.Api.Model;
 
-    public enum OutputChannelModificationType
+namespace Wormhole.DomainModel
+{
+    public class OutputChannelModificationInfo : IKafkaMessage
     {
-        ADD = 0,
-        EDIT = 1,
-        DELETE = 2
+        public OutputChannel.OutputChannel OutputChannel { get; set; }
+        public OutputChannelModificationType ModificationType { get; set; }
     }
 }

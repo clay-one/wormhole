@@ -1,19 +1,21 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 
-namespace Wormhole.DomainModel
+namespace Wormhole.DomainModel.OutputChannel
 {
     public class OutputChannel
     {
 
         public OutputChannel()
         {
-            Id = ObjectId.GenerateNewId();
+            Id = ObjectId.GenerateNewId().ToString();
             FilterCriteria = new MessageFilterCriteria();
         }
 
         [BsonId]
-        public ObjectId Id { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
 
         public string ExternalKey { get; set; }
 
@@ -23,6 +25,7 @@ namespace Wormhole.DomainModel
         public string TenantId { get; set; }
         public string JobId { get; set; }
 
+        [JsonProperty(TypeNameHandling = TypeNameHandling.Auto)]
         public OutputChannelSpecification TypeSpecification { get; set; }
 
         public MessageFilterCriteria FilterCriteria { get; set; }

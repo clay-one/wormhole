@@ -6,17 +6,19 @@ namespace Wormhole.Worker.EventNotification
 {
     public class OutputChannelAddEventSubscriber : IOutputChannelEventSubscriber
     {
-        public Task Subscribe(OutputChannelModificationInfo modificationInfo, NebulaService nebulaService)
+        public async Task Subscribe(OutputChannelModificationInfo modificationInfo, NebulaService nebulaService)
         {
-            var outputChannel = modificationInfo.OutputChannel;
-            if (outputChannel == null)
-                return Task.FromException(new ArgumentNullException());
+            var outputChannelSpecification = modificationInfo.OutputChannel.TypeSpecification;
+            if (outputChannelSpecification == null)
+                return;
 
-            if (outputChannel.TypeSpecification is HttpPushOutputChannelSpecification channelSpecification)
-                    return nebulaService?.CreateJobAsync(channelSpecification.TargetUrl, outputChannel.ExternalKey)
+            nebulaService.UpdateInMemoryOutputChannels(modificationInfo.OutputChannel, modificationInfo.ModificationType);
+
+            if (outputChannelSpecification is HttpPushOutputChannelSpecification channelSpecification)
+                    await nebulaService.CreateJobAsync(channelSpecification.TargetUrl, modificationInfo.OutputChannel.ExternalKey)
                         .ContinueWith(res => nebulaService.StartJob(res.Result));
-
-            return Task.FromException(new ArgumentNullException($"OutputChannel Type is not supported"));
+            else
+                throw new ArgumentNullException($"OutputChannel Type is not supported");
         }
 
     }

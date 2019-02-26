@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DomainModel;
+using Wormhole.DomainModel.OutputChannel;
 
 namespace Wormhole.Mapping.Profile
 {

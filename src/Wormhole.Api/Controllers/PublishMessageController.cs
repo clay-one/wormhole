@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Attributes;
-using Wormhole.Api.Model.Publish;
+using Wormhole.Api.Model.PublishModel;
 using Wormhole.Interface;
 
 namespace Wormhole.Api.Controllers

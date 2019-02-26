@@ -1,17 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Wormhole.Api.Model.Publish;
 using Wormhole.Configurations;
 using Wormhole.DomainModel;
-using Wormhole.Interface;
 using Wormhole.Kafka;
-using Wormhole.Worker.EventNotification;
 
-namespace Wormhole.Worker
+namespace Wormhole.Worker.EventNotification
 {
     public class EventConsumer : KafkaConsumer
     {
@@ -29,7 +25,7 @@ namespace Wormhole.Worker
 
         private void MessageReceived(object sender, Message<Null, string> message)
         {
-            var modificationInfo = JsonConvert.DeserializeObject<OutputChannelModificationInfo>(message.Value);
+            var modificationInfo = JsonConvert.DeserializeObject<OutputChannelModificationInfo>(message.Value, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             var eventSubscriber = GetSubscriber(modificationInfo.ModificationType);
             eventSubscriber.Subscribe(modificationInfo, _nebulaService);
         }

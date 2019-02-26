@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
+using Wormhole.DomainModel.OutputChannel;
 using Wormhole.Interface;
 
 namespace Wormhole.Api.Controllers

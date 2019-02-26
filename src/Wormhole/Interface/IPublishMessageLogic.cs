@@ -1,4 +1,4 @@
-﻿using Wormhole.Api.Model.Publish;
+﻿using Wormhole.Api.Model.PublishModel;
 using Wormhole.DTO;
 
 namespace Wormhole.Interface

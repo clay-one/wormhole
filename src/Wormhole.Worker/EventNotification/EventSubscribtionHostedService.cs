@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wormhole.Configurations;
-using Wormhole.DataImplementation;
-using Wormhole.Interface;
 using Wormhole.Kafka;
 using Wormhole.Utils;
 
-namespace Wormhole.Worker
+namespace Wormhole.Worker.EventNotification
 {
     public class EventSubscribtionHostedService : IHostedService
     {

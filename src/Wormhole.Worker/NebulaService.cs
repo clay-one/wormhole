@@ -14,14 +14,16 @@ using Newtonsoft.Json;
 using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
+using Wormhole.DomainModel.OutputChannel;
 using Wormhole.Job;
+using static Wormhole.DomainModel.OutputChannelModificationType;
 
 namespace Wormhole.Worker
 {
     public class NebulaService
     {
         private readonly IOutputChannelDa _outputChannelDa;
-        private readonly List<OutputChannel> _outputChannels = new List<OutputChannel>();
+        private readonly List<OutputChannel> _inMemoryOutputChannels = new List<OutputChannel>();
         private readonly IServiceProvider _serviceProvider;
         private const string TenantId = "ir.fanap.plus";
 
@@ -55,7 +57,7 @@ namespace Wormhole.Worker
             var list = new List<KeyValuePair<string, string>>();
             foreach (var tag in tags)
             {
-                list.Add(_outputChannels.Where(o =>
+                list.Add(_inMemoryOutputChannels.Where(o =>
                         o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
                     .Select(o => new KeyValuePair<string, string>(o.JobId, o.FilterCriteria.Tag)).FirstOrDefault());
             }
@@ -78,8 +80,8 @@ namespace Wormhole.Worker
 
         private async Task StartJobs()
         {
-            _outputChannels.AddAll(await GetOutputChannels());
-            await CreateHttpPushOutgoingQueueJobsAsync(_outputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
+            _inMemoryOutputChannels.AddAll(await GetOutputChannels());
+            await CreateHttpPushOutgoingQueueJobsAsync(_inMemoryOutputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
                 .ToList());
         }
 
@@ -133,6 +135,25 @@ namespace Wormhole.Worker
         public async Task StartJob(string jobId)
         {
             await NebulaContext.GetJobManager().StartJobIfNotStarted(TenantId, jobId);
+        }
+
+        internal void UpdateInMemoryOutputChannels(OutputChannel outputChannel, OutputChannelModificationType modificationType)
+        {
+            switch (modificationType)
+            {
+                case ADD:
+                    _inMemoryOutputChannels.Add(outputChannel);
+                    break;
+                case EDIT:
+                    _inMemoryOutputChannels.RemoveAll(oc => oc.ExternalKey == outputChannel.ExternalKey);
+                    _inMemoryOutputChannels.Add(outputChannel);
+                    break;
+                case DELETE:
+                    _inMemoryOutputChannels.RemoveAll(oc => oc.ExternalKey == outputChannel.ExternalKey);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(modificationType), modificationType, null);
+            }
         }
     } 
 }

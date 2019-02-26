@@ -10,6 +10,7 @@ using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
 using Wormhole.Utils;
+using Wormhole.Worker.EventNotification;
 
 namespace Wormhole.Worker
 {
