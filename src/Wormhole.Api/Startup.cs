@@ -39,6 +39,7 @@ namespace Wormhole.Api
             services.AddScoped<ITenantDa, TenantDa>();
             services.AddScoped<IMessageLogDa, MessageLogDa>();
             services.AddScoped<IPublishMessageLogic, PublishMessageLogic>();
+            services.AddScoped<IOutputChannelLogic, OutputChannelLogic>();
             services.AddSingleton<IdentityLogic>();
             services.AddSingleton<IdentityPolicyCache>();
             services.AddScoped<ITenantLogic, TenantLogic>();

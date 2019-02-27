@@ -10,6 +10,7 @@ using Wormhole.Configurations;
 using Wormhole.DataImplementation;
 using Wormhole.Job;
 using Wormhole.Utils;
+using Wormhole.Worker.EventNotification;
 
 namespace Wormhole.Worker
 {
@@ -81,6 +82,7 @@ namespace Wormhole.Worker
                 .AddTransient<HttpPushOutgoingQueueProcessor>()
                 .AddSingleton<NebulaService>()
                 .AddHostedService<ConsumerHostedService>()
+                .AddHostedService<EventSubscribtionHostedService>()
                 .Configure<KafkaConfig>(config.GetSection(Constants.KafkaConfigSection))
                 .Configure<RetryConfiguration>(config.GetSection(Constants.RetryConfigSection))
                 .Configure<NebulaConfig>(config.GetSection(Constants.NebulaConfigSection))

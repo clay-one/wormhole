@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
-using Wormhole.Api.Model.Publish;
+using Wormhole.Api.Model.PublishModel;
 using Wormhole.DTO;
 using Wormhole.Interface;
 using Wormhole.Kafka;
@@ -23,7 +23,7 @@ namespace Wormhole.Logic
         {
             try
             {
-                _producer.Produce(input);
+                _producer.Produce(input.Tenant, input);
 
                 return new ProduceMessageOutput
                 {

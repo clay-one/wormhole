@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Wormhole.Api.Model.OutputChannels;
 using Wormhole.DataImplementation;
 using Wormhole.DomainModel;
+using Wormhole.DomainModel.OutputChannel;
+using Wormhole.Interface;
 
 namespace Wormhole.Api.Controllers
 {
@@ -12,11 +14,11 @@ namespace Wormhole.Api.Controllers
     [ApiController]
     public class OutputChannelController : ControllerBase
     {
-        private readonly IOutputChannelDa _outputChannelDa;
+        private readonly IOutputChannelLogic _outputChannelLogic;
 
-        public OutputChannelController(IOutputChannelDa outputChannelDa, ILogger<OutputChannelController> logger)
+        public OutputChannelController(IOutputChannelLogic outputChannelDa, ILogger<OutputChannelController> logger)
         {
-            _outputChannelDa = outputChannelDa;
+            _outputChannelLogic = outputChannelDa;
             Logger = logger;
         }
 
@@ -30,7 +32,7 @@ namespace Wormhole.Api.Controllers
 
             var channel = Mapping.AutoMapper.Mapper.Map<OutputChannel>(input);
 
-            await _outputChannelDa.AddOutputChannel(channel);
+            await _outputChannelLogic.Create(channel);
 
             var output = Mapping.AutoMapper.Mapper.Map<HttpPushOutputChannelAddResponse>(channel);
 
@@ -44,7 +46,7 @@ namespace Wormhole.Api.Controllers
 
             var channel = Mapping.AutoMapper.Mapper.Map<OutputChannel>(input);
 
-            await _outputChannelDa.AddOutputChannel(channel);
+            await _outputChannelLogic.Create(channel);
 
             var output = Mapping.AutoMapper.Mapper.Map<KafkaOutputChannelAddResponse>(channel);
 

@@ -3,7 +3,7 @@ using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Wormhole.Api.Model.Publish;
+using Wormhole.Api.Model.PublishModel;
 using Wormhole.Configurations;
 using Wormhole.Interface;
 using Wormhole.Kafka;

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Wormhole.Api.Model.Publish
+namespace Wormhole.Api.Model.PublishModel
 {
-    public class PublishInput
+    public class PublishInput : IKafkaMessage
     {
         public object Payload { get; set; }
         public string Tenant { get; set; }

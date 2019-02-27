@@ -100,7 +100,6 @@ namespace Wormhole.Kafka
             {
                 _thread = new Thread(() =>
                 {
-                    //LogicalThreadContext.Properties["MUID"] = Guid.NewGuid().ToString("N");
                     do
                     {
                         try
