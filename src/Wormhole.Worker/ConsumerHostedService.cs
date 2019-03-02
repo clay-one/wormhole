@@ -42,8 +42,8 @@ namespace Wormhole.Worker
 
         private async Task<List<string>> GetTopics()
         {
-            var topics = await _tenantDa.FindTenants();
-            return topics.Select(t => t.Name).ToList();
+            var tenants = await _tenantDa.FindTenants();
+            return tenants.Select(t => t.Identifier).ToList();
         }
 
 
