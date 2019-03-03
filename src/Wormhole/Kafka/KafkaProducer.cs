@@ -22,7 +22,7 @@ namespace Wormhole.Kafka
 
             var config = new Dictionary<string, object>
             {
-                {"bootstrap.servers", _config.ServerAddress},
+                {"bootstrap.servers", _config.BootstrapServers},
                 {"delivery.report.only.error", false}
             };
          
