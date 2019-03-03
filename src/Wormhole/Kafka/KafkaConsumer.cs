@@ -72,7 +72,7 @@ namespace Wormhole.Kafka
         {
             OnMessage = onMessageEventHandler;
             config.Add(new KeyValuePair<string, object>(KafkaConfig.BootstrapServersKey,
-                _configuration.ServerAddress));
+                _configuration.BootstrapServers));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.ConsumerAutoCommitIntervalMsKey, 
                 _configuration.ConsumerAutoCommitIntervalMs));
             config.Add(new KeyValuePair<string, object>(KafkaConfig.EnableAutoCommitKey, _configuration.EnableAutoCommit));
