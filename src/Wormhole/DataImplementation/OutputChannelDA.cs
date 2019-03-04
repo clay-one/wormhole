@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml.Xsl.Qil;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Wormhole.DomainModel;
@@ -28,12 +29,13 @@ namespace Wormhole.DataImplementation
             return await  OutputChannelCollection.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task SetJobId(string externalKey, string jobId)
+        public async Task<OutputChannel> SetJobId(string externalKey, string jobId)
         {
             var filter = Builders<OutputChannel>.Filter.Eq(nameof(OutputChannel.ExternalKey),externalKey);
-
+            var options = new FindOneAndUpdateOptions<OutputChannel>(){ReturnDocument = ReturnDocument.After};
             var update = Builders<OutputChannel>.Update.Set(nameof(OutputChannel.JobId), jobId);
-            await OutputChannelCollection.UpdateOneAsync(filter, update);
+            var result = await OutputChannelCollection.FindOneAndUpdateAsync(filter, update, options);
+            return result;
         }
 
         public async Task AddOutputChannel(OutputChannel channel)

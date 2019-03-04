@@ -80,7 +80,7 @@ namespace Wormhole.Worker
 
         private async Task StartJobs()
         {
-            _inMemoryOutputChannels.AddAll(await GetOutputChannels());
+            _inMemoryOutputChannels.AddRange(await GetOutputChannels());
             await CreateHttpPushOutgoingQueueJobsAsync(_inMemoryOutputChannels.Where(o => o.ChannelType == ChannelType.HttpPush)
                 .ToList());
         }
@@ -128,7 +128,8 @@ namespace Wormhole.Worker
                         IsIndefinite = true
                     });
 
-            await _outputChannelDa.SetJobId(outputChannelExternalKey, jobId);
+            var updatedOutputChannel = await _outputChannelDa.SetJobId(outputChannelExternalKey, jobId);
+            ModifyInMemoryOutputChannels(updatedOutputChannel);
             return jobId;
         }
 

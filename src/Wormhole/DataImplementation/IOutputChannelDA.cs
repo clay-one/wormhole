@@ -10,6 +10,6 @@ namespace Wormhole.DataImplementation
         Task AddOutputChannel(OutputChannel channel);
         Task<List<OutputChannel>> FindAsync();
         Task<OutputChannel> FindAsync(string externalKey);
-        Task SetJobId(string externalKey, string jobId);
+        Task<OutputChannel> SetJobId(string externalKey, string jobId);
     }
 }

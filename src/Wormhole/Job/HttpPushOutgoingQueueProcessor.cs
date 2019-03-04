@@ -80,6 +80,8 @@ namespace Wormhole.Job
             var publishResult = sendMessageOutputTask.Result;
             if (publishResult.Success)
             {
+                Logger.LogInformation(
+                    $"HttpPushOutgoingQueueProcessor - Process sending Message succeeded with {_jobId} job Id and {item.StepId} step Id.");
                 InsertMessageLog(item, publishResult).GetAwaiter().GetResult();
                 return jobProcessingResult; 
             }
@@ -92,14 +94,16 @@ namespace Wormhole.Job
                 publishResult.Error
             };
             Logger.LogInformation(
-                $"HttpPushOutgoingQueueProcessor - Process FailCount: {item.FailCount} with {_jobId} job Id.");
+                $"HttpPushOutgoingQueueProcessor - Process sending message failed with {item.FailCount} failcount, with {_jobId} job Id and {item.StepId} step Id.");
 
             if (!RetryPolicyMeets(publishResult.HttpResponseCode))
-                return jobProcessingResult; 
+                return jobProcessingResult;
 
             if (item.FailCount > _retryConfig.Count)
-                return jobProcessingResult; 
+                return jobProcessingResult;
 
+            Logger.LogInformation(
+                $"HttpPushOutgoingQueueProcessor - Process is enqueing for retry with {_jobId} job Id and {item.StepId} step Id.");
             jobProcessingResult.ItemsRequeued = item.FailCount;
             _jobQueue.Enqueue(item, publishResult.ResponseTime.AddMinutes(_retryConfig.Interval)).GetAwaiter().GetResult();
 
@@ -138,6 +142,9 @@ namespace Wormhole.Job
             try
             {
                 var response = await _httpClient.PostAsync(_parameters.TargetUrl, httpContent);
+                
+            Logger.LogInformation(
+                $"HttpPushOutgoingQueueProcessor - Process is sending message with {_jobId} job Id and {input.StepId} step Id ");
                 output.ResponseTime = DateTime.UtcNow;
                 output.Success = response.IsSuccessStatusCode;
                 output.HttpResponseCode = response.StatusCode;
