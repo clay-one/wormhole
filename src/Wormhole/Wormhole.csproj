@@ -13,4 +13,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Wormhole.Api.Model\Wormhole.Api.Model.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Data.SqlXml">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.SqlXml.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
