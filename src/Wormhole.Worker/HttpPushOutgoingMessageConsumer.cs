@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -45,8 +46,12 @@ namespace Wormhole.Worker
             var jobIdTagPairs =
                 _nebulaService.GetJobIdTagPairs(publishInput.Tenant, publishInput.Category, publishInput.Tags);
 
-            if (jobIdTagPairs == null)
+            if (!jobIdTagPairs.Any())
             {
+                _logger.LogWarning($"active job not found for " +
+                    $"Tenant: {publishInput.Tenant} " +
+                    $"Category: {publishInput.Category} " +
+                    $"Tags: {{{string.Join(", ", publishInput.Tags)}}}");
                 return;
             }
 
