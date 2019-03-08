@@ -30,18 +30,21 @@ namespace Wormhole.Worker
         private void MessageReceived(object sender, Message<Null, string> message)
         {
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
-            if (publishInput.Tags == null || publishInput.Tags.Count < 1)
+            if (!publishInput.ValidateTags())
             {
+                _logger.LogWarning("Received message with invalid tags", publishInput);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(publishInput.Category))
             {
+                _logger.LogWarning("Received message with invalid category", publishInput);
                 return;
             }
 
             var jobIdTagPairs =
                 _nebulaService.GetJobIdTagPairs(publishInput.Tenant, publishInput.Category, publishInput.Tags);
+
             if (jobIdTagPairs == null)
             {
                 return;

@@ -1,4 +1,5 @@
-﻿using Hydrogen.General.Validation;
+﻿using Hydrogen.General.Collections;
+using Hydrogen.General.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wormhole.Api.Attributes;
@@ -29,7 +30,7 @@ namespace Wormhole.Api.Controllers
             Logger.LogDebug($"PublishMessageController - Publish method called with this input: {input}");
             if (input == null)
             {
-                return BadRequest(new ApiValidationError("input", ErrorKeys.ParameterNull));
+                return BadRequest(new ApiValidationError(nameof(input), ErrorKeys.ParameterNull));
             }
 
             if (input.Payload == null)
@@ -42,7 +43,7 @@ namespace Wormhole.Api.Controllers
                 return BadRequest(new ApiValidationError(nameof(PublishInput.Category), ErrorKeys.ParameterNull));
             }
 
-            if (input.Tags == null || input.Tags.Count < 1)
+            if (!input.ValidateTags())
             {
                 return BadRequest(new ApiValidationError(nameof(PublishInput.Tags), ErrorKeys.ParameterNull));
             }
