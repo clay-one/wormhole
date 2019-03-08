@@ -19,7 +19,7 @@ namespace Wormhole.Integration.Tests.Base
 
         public void Dispose()
         {
-            _host.StopAsync();
+            _host.StopAsync().GetAwaiter().GetResult();
             _host.Dispose();
         }
 
