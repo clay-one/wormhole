@@ -55,11 +55,18 @@ namespace Wormhole.Worker
             IList<string> tags)
         {
             var list = new List<KeyValuePair<string, string>>();
+
             foreach (var tag in tags)
             {
-                list.Add(_inMemoryOutputChannels.Where(o =>
-                        o.FilterCriteria.Category == category && o.TenantId == tenant && o.FilterCriteria.Tag == tag)
-                    .Select(o => new KeyValuePair<string, string>(o.JobId, o.FilterCriteria.Tag)).FirstOrDefault());
+                var outputChannels = _inMemoryOutputChannels.Where(o =>
+                        o.FilterCriteria.Category == category &&
+                        o.TenantId == tenant &&
+                        o.FilterCriteria.Tag == tag);
+
+                var jobTagPairs = outputChannels
+                    .Select(s => new KeyValuePair<string, string>(s.JobId, s.FilterCriteria.Tag));
+
+                list.AddRange(jobTagPairs);
             }
 
             return list;

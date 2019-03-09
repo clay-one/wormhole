@@ -28,7 +28,7 @@ namespace Wormhole.InputChannels.Kafka.Consumer
         {
             var publishInput = JsonConvert.DeserializeObject<PublishInput>(message.Value);
 
-            if (publishInput.Tags == null || publishInput.Tags.Count < 1)
+            if (!publishInput.ValidateTags())
             {
                 _logger.LogInformation(
                     $"KafkaInputChannelConsumer_MessageReceived: Tags don't exist. publishInput: {publishInput}");
