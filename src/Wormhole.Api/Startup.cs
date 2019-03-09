@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using NLog.Fluent;
 using NLog.Web;
 using Swashbuckle.AspNetCore.Swagger;
 using Wormhole.Api.Cache;
@@ -22,12 +24,14 @@ namespace Wormhole.Api
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger _logger;
 
-        public Startup(IConfiguration configuration, IHostingEnvironment env)
+        public Startup(IConfiguration configuration, IHostingEnvironment env, ILogger<Startup> logger)
         {
             _configuration = configuration;
 
             env.ConfigureNLog($"nlog.{env.EnvironmentName}.config");
+            _logger = logger;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -72,6 +76,7 @@ namespace Wormhole.Api
         {
             ConfigureLogging(app, loggerFactory);
             ConfigureTypeMappings();
+            ConfigureUnhandledExceptions(app);
             ConfigureMongo(app);
             ConfigureSwagger(app);
 
@@ -82,6 +87,22 @@ namespace Wormhole.Api
 
             MapWebApi(app);
             app.UseHttpsRedirection();
+        }
+
+        private void ConfigureUnhandledExceptions(IApplicationBuilder app)
+        {
+            app.Use(async (context, next) =>
+            {
+                try
+                {
+                    await next.Invoke();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("Unhandled exception in OWIN pipeline, not reported to ExceptionLogger", e);
+                    throw;
+                }
+            });
         }
 
         private void ConfigureSwagger(IApplicationBuilder app)
