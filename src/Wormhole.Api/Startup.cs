@@ -76,7 +76,6 @@ namespace Wormhole.Api
         {
             ConfigureLogging(app, loggerFactory);
             ConfigureTypeMappings();
-            ConfigureUnhandledExceptions(app);
             ConfigureMongo(app);
             ConfigureSwagger(app);
 
@@ -87,22 +86,6 @@ namespace Wormhole.Api
 
             MapWebApi(app);
             app.UseHttpsRedirection();
-        }
-
-        private void ConfigureUnhandledExceptions(IApplicationBuilder app)
-        {
-            app.Use(async (context, next) =>
-            {
-                try
-                {
-                    await next.Invoke();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError("Unhandled exception in OWIN pipeline, not reported to ExceptionLogger", e);
-                    throw;
-                }
-            });
         }
 
         private void ConfigureSwagger(IApplicationBuilder app)
